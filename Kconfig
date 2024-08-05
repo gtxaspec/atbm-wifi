@@ -1,0 +1,475 @@
+menuconfig ATBM_WIRELESS_WIFI6
+    tristate "Atbm Wifi6 Wireless Lan"
+    default m
+
+if ATBM_WIRELESS_WIFI6
+config ATBM_APOLLO_WIFI6
+    tristate "ATBM_APOLLO WLAN support"
+    select CRYPTO
+    select CRYPTO_ARC4
+    select CRYPTO_AES
+    select CRC32
+    select AVERAGE
+    depends on !ATBM_MENUCONFIG_WIFI6
+    help
+
+    This is an experimental driver for the ATBM_APOLLO chip-set.
+    Enabling this option enables the generic driver without
+    any platform support.
+ 
+    Please select the appropriate platform below.
+config ATBM_WEXT_WIFI6
+	tristate "support wireless wext"
+	select WIRELESS_EXT
+	select WEXT_PRIV
+	help
+		only select WEIRELESS_EXT and WEXT_PRIV
+  
+if ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+choice
+    prompt "select which atbm Wi-Fi product  will be used: ATBM606x,default:ATBM606x"
+    default ATBM606x
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    help
+     Here,you must make sure which atbm Wi-Fi product you will want to use,ATBM606x
+config ATBM606x
+    bool "ATBM606x chip"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    help
+     we will use ATBM606x chip
+endchoice
+
+choice
+    prompt "select which bus will be used"
+    default ATBM_USB_BUS_WIFI6
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    help
+     Here,you must make sure what interface you will want to use,usb
+     sdio or spi
+config ATBM_USB_BUS_WIFI6
+    bool "usb bus"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    help
+      we will use usb bus
+config ATBM_SDIO_BUS_WIFI6
+    bool "sdio bus"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    help
+     sdio bus
+config ATBM_SPI_BUS_WIFI6
+    bool "spi bus"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    help
+     we will use spi bus
+endchoice
+
+choice
+    prompt "Select which firmware will be used:.bin or firmware.h"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    default ATBM_USE_FIRMWARE_BIN_WIFI6
+    help
+     include firmware.h or request xxx.bin from system
+config ATBM_USE_FIRMWARE_BIN_WIFI6
+    bool "Request .bin from system"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    help
+     Request .bin from system
+config ATBM_USE_FIRMWARE_H_WIFI6
+    bool "Include firmware.h"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    help
+     include firmware.h
+endchoice
+
+choice
+    prompt "select which sido dpll freq used:24M or 40M.default:40M"
+    default ATBM_SDIO_40M_WIFI6
+    depends on (ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6) && ATBM_SDIO_BUS_WIFI6 && (ATBM602x_WIFI6 || ATBM601x_WIFI6)
+    help
+     Here,you must make sure the sdio interface use 40M or 24M dpll
+config ATBM_SDIO_40M_WIFI6
+    bool "SDIO 40M"
+    depends on (ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6) && ATBM_SDIO_BUS_WIFI6
+    help
+     we will use SDIO 40M
+config ATBM_SDIO_24M_WIFI6
+    bool "SDIO 24M"
+    depends on (ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6) && ATBM_SDIO_BUS_WIFI6
+    help
+     we will use SDIO 24M
+endchoice
+
+
+menu "Driver Extern Function Select"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+config ATBM_SUPPORT_BRIDGE_WIFI6
+    bool "Enable wifi interface bridge function"
+    default n
+config ATBM_FUNC_NOTXCONFIRM_WIFI6
+    bool "Enable Tx no confirm function to enhance performance"
+    default y
+config ATBM_FUNC_EARLYSUSPEND_WIFI6
+    bool "Enable early suspend function for some platform power save"
+    default n
+config ATBM_FUNC_MONITOR_WIFI6
+    bool "Enable rx monitor function to receive all package"
+    default y
+config ATBM_FUNC_MONITOR_HDR_PRISM_WIFI6
+    bool "Enable rx monitor header prism"
+    depends on ATBM_FUNC_MONITOR_WIFI6
+    default n
+config ATBM_FUNC_SKB_DEBUG_WIFI6
+    bool "Enable skb debug function to debug skb alloc and free"
+    default n
+config ATBM_FUNC_MEM_DEBUG_WIFI6
+    bool "Enable memory debug function to debug memory alloc and free"
+    default n
+config ATBM_FUNC_CHANNEL_5G_PRETEND_2G_WIFI6
+    bool "Enable 2.4g useing 5g channel function ,only support special frequnce"
+    default n
+config ATBM_WITHBAND_ONLY_HT20_WIFI6
+    bool "Enable only support HT20"
+    default n
+config ATBM_FUNC_USB_AGGRTX_WIFI6
+    bool "Enabel usb aggr tx funciton to enchance tx performance"
+    depends on ATBM_USB_BUS
+    default n
+    select  ATBM_FUNC_USB_DMABUFF_WIFI6
+config ATBM_FUNC_USB_DMABUFF_WIFI6
+    bool "Enable usb use dam buff for xmit"
+    depends on ATBM_USB_BUS_WIFI6
+    default n
+config ATBM_USB_INTR_WIFI6
+    bool "The hardware may not generate an interrupt when the urb ends"
+    depends on ATBM_USB_BUS_WIFI6
+    default y
+config ATBM_FUNC_USB_DATA_ENHANCE_WIFI6
+    bool "Enable usb data send directly function"
+    depends on ATBM_USB_BUS_WIFI6
+    default n
+    select ATBM_FUNC_USB_AGGRTX_WIFI6
+config ATBM_FUNC_PS_WAKEUP_RELOAD_FW_WIFI6
+    bool "Enable usb wakeup reload fw function"
+    depends on ATBM_USB_BUS_WIFI6
+    default n
+config ATBM_FUNC_HW_CHSUM_WIFI6
+    bool "Enable hw do tcp/ip checksum function"
+    depends on ATBM606x
+    default n
+config ATBM_SW_RATE_CTRL_WIFI6
+    bool "Enable sw do rate ctrl"
+    depends on !ATBM_FUNC_NOTXCONFIRM_WIFI6
+    default n
+config ATBM_FUNC_P2P_ENABLE_WIFI6
+    bool "Enable P2P"
+    default n
+config ATBM_FUNC_SW_ENC_WIFI6
+    bool "enable sw enc function"
+    default n
+config ATBM_FUNC_DEV_CTRL_API_WIFI6
+    bool "enabel dev_ctrl api"
+    default y
+config ATBM_FUNC_MODULE_FS_WIFI6
+    bool "enable modules fs"
+    default y
+config ATBM_FUNC_DRV_LOADER_FAST_WIFI6
+	bool "Enable loader driver fast function"
+	depends on ATBM_USB_BUS_WIFI6
+	default n
+config ATBM_FUNC_PRIVE_IE_WIFI6
+	bool "Enable iwpriv some prive func"
+	default y
+config ATBM_FUNC_SAE_AUTHEN_WIFI6
+	bool "Enable WPA3 support,but make sure the kernel support sae before enabled"
+	default y
+config ATBM_FUNC_DRIVER_SETUP_AMPDU_WIFI6
+	bool "Enable driver set up tx/rx BA"
+	default y
+endmenu
+
+
+
+
+
+menu "Driver debug features"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+
+config ATBM_APOLLO_DEBUGFS_WIFI6
+    bool "Expose driver internals to DebugFS (DEVELOPMENT)"
+config ATBM_APOLLO_DEBUG_ON_BOOT_WIFI6
+    bool "Enable selected driver debug messages during boot time (DEVELOPMENT)"
+
+config ATBM_APOLLO_BH_DEBUG_WIFI6
+    bool "Enable low-level device communication logs (DEVELOPMENT)"
+
+config ATBM_APOLLO_WSM_DEBUG_WIFI6
+    bool "Enable WSM API debug messages (DEVELOPMENT)"
+
+config ATBM_APOLLO_WSM_DUMPS_WIFI6
+    bool "Verbose WSM API logging (DEVELOPMENT)"
+
+config ATBM_APOLLO_WSM_DUMPS_SHORT_WIFI6
+    bool "Dump only first x bytes (default 20) (DEVELOPMENT)"
+
+config ATBM_APOLLO_TXRX_DEBUG_WIFI6
+    bool "Enable TX/RX debug messages (DEVELOPMENT)"
+
+config ATBM_APOLLO_TX_POLICY_DEBUG_WIFI6
+    bool "Enable TX policy debug (DEVELOPMENT)"
+
+config ATBM_APOLLO_STA_DEBUG_WIFI6
+    bool "Enable STA/AP debug (DEVELOPMENT)"
+
+config ATBM_APOLLO_DUMP_ON_ERROR_WIFI6
+    bool "Dump kernel in case of critical error (DEVELOPMENT)"
+endmenu
+
+config BLUEDROID_WIFI6
+	bool "Enable bluedroid"
+	default n
+   	help
+           bluedroid support              
+
+config ATBM_DEFAULT_COUNTRY_CODE_WIFI6
+    string "which country set :US/CN/JP/00"
+    depends on (ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6)
+    default "00"
+    help
+     set which default country code,default:00.
+     driver on runing , not allow set country code ->00
+config ATBM_SDIO_MMCx_WIFI6
+    string "which mmc will be used"
+    depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && ATBM_SDIO_BUS
+    default "mmc0"
+    help
+     set which mmc will be used
+config ATBM_APOLLO_USE_GPIO_IRQ_WIFI6
+    bool "Use GPIO interrupt"
+    depends on (ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6) && ATBM_SDIO_BUS_WIFI6
+    default n
+    help
+     Say Y here if you want to include GPIO IRQ support instead of SDIO IRQ.
+     if unsure, say N.
+
+config ATBM_APOLLO_SUPPORT_SGI_WIFI6
+    bool "Use short GI support"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    default y
+    help
+    Say Y here if you want to include short gi support
+	 If unsure, say N.
+config MAC80211_ATBM_HAS_RC_WIFI6
+	bool
+	
+config MAC80211_ATBM_RC_MINSTREL_WIFI6
+	bool "Minstrel" if EXPERT && ATBM_SW_RATE_CTRL_WIFI6
+	select MAC80211_ATBM_HAS_RC_WIFI6
+	default y
+        depends on ATBM_SW_RATE_CTRL_WIFI6
+	help
+	  This option enables the 'minstrel' TX rate control algorithm
+
+config MAC80211_ATBM_RC_MINSTREL_HT_WIFI6
+	bool "Minstrel 802.11n support" if EXPERT && ATBM_SW_RATE_CTRL_WIFI6
+	depends on MAC80211_ATBM_RC_MINSTREL_WIFI6 && ATBM_SW_RATE_CTRL_WIFI6
+	default y
+	help
+	  This option enables the 'minstrel_ht' TX rate control algorithm
+	 
+config MAC80211_ATBM_RC_DEFAULT_MINSTREL_WIFI6
+	bool "Minstrel"	if EXPERT && ATBM_SW_RATE_CTRL_WIFI6
+	depends on MAC80211_ATBM_RC_MINSTREL_WIFI6 && ATBM_SW_RATE_CTRL_WIFI6
+	default y
+	help
+	  Select Minstrel as the default rate control algorithm.
+
+config ATBM_WIFIIF1_NAME_WIFI6
+    string "Setting wifi interface 1 name"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    default "wlan%d"
+    help
+      Set name for wireless interface 1,the length of name is must smaller than 15
+config NEED_P2P0_INTERFACE_WIFI6
+	bool "ENABLE scond interface"
+	depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+	default y
+	help
+		enable scond interface,default p2p0
+		
+config ATBM_WIFIIF2_NAME_WIFI6
+    string "Setting wifi interface 2 name"
+    depends on (ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6) && NEED_P2P0_INTERFACE_WIFI6
+    default "p2p%d"
+    help
+     set name for wireless interface 2,the length of name is must smaller than 15
+
+config ATBM_MODULE_PM_STAYAWK_WIFI6
+    string "Setting wifi pm stay awake modules name"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    default "pm_stayawake"
+    help
+     set name for pm stay awake modules,the length of name is must smaller than 15
+
+config ATBM_MODULE_DRIVER_NAME_WIFI6
+    string "Setting wifi module driver name"
+    depends on (ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6) && (ATBM_USB_BUS_WIFI6 || ATBM_SDIO_BUS_WIFI6)
+    default "atbm_wlan"
+    help
+     set name for wireless interface 2,the length of name is must smaller than 15
+
+config ATBM_PLATFORM_DEVICE_NAME_WIFI6
+    string "Setting wifi platform device name"
+    depends on (ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6) && (ATBM_USB_BUS_WIFI6 || ATBM_SDIO_BUS_WIFI6)
+    default "atbm_dev_wifi"
+    help
+     set name for wireless platform device name,the length of name is must smaller than 15
+     
+config ATBM_USB_VID_WIFI6
+    hex "Setting wifi usb vid"
+    depends on (ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6) && ATBM_USB_BUS_WIFI6
+    default 0x007a
+    help
+     set usb enumeration vendor id ,value is hex
+
+config ATBM_USB_PID_WIFI6
+    hex "Setting wifi usb pid"
+    depends on (ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6) && ATBM_USB_BUS_WIFI6
+    default 0x6052
+    help
+     set usb enumeration product id ,value is hex
+
+config ATBM_SDIO_VID_WIFI6
+    hex "Setting wifi sdio vid"
+    depends on (ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6) && ATBM_SDIO_BUS_WIFI6
+    default 0x007a
+    help
+     set SDIO enumeration vendor id ,value is hex
+
+config ATBM_SDIO_PID_WIFI6
+    hex "Setting wifi sdio pid"
+    depends on (ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6) && ATBM_SDIO_BUS_WIFI6
+    default 0x6051
+    help
+     set SDIO enumeration product id ,value is hex
+
+config ATBM_MODULE_NAME_WIFI6
+    string "set module name"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    default "ATBM606x_wifi_usb" if ATBM606x && ATBM_USB_BUS_WIFI6
+    default "ATBM606x_wifi_sdio" if ATBM606x && ATBM_SDIO_BUS_WIFI6
+    help 
+     set name for wifi module
+
+config ATBM_FW_NAME_WIFI6
+    string "set fw path name"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    depends on ATBM_USE_FIRMWARE_BIN_WIFI6
+    default "atbm606x_fw_usb.bin" if ATBM_USB_BUS_WIFI6
+    default "atbm606x_fw_sdio.bin" if ATBM_SDIO_BUS_WIFI6
+    help
+     set name for wifi module
+
+config ATBM_CONFIG_FILE
+    string "set tx dcxo config file path"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    default "/tmp/atbm_txpwer_dcxo_cfg.txt"
+    help
+    set path for dcxo config file
+
+config ATBM_RATE_POWER_CONFIG_FILE
+    string "set rate power config path"
+    depends on ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6
+    default "/tmp/set_rate_power.txt"
+    help
+    set path for rate power config
+
+config MAC80211_ATBM_RC_DEFAULT_WIFI6
+	string
+	default "minstrel_ht" if MAC80211_ATBM_RC_DEFAULT_MINSTREL_WIFI6 && MAC80211_ATBM_RC_MINSTREL_HT_WIFI6
+	default "minstrel" if MAC80211_ATBM_RC_DEFAULT_MINSTREL_WIFI6
+	default "pid" if MAC80211_ATBM_RC_DEFAULT_PID_WIFI6
+	default ""
+#comment "Some wireless drivers require a rate control algorithm"
+#	depends on MAC80211_ATBM_HAS_RC
+	
+
+	 
+menuconfig CPTCFG_CFG80211
+	tristate "altobeam  wifi6 WiFi cfg80211"
+	default y
+	help
+	  if kernel version less 5.7  suggestion open this config,other not open
+	    
+config CPTCFG_CFG80211_WEXT
+	bool "altobeam wifi6 WiFi cfg80211 wext"
+	depends on CPTCFG_CFG80211
+	default y
+	help
+	  need wifi6 support, used backport mac80211/cfg80211
+
+config CPTCFG_CFG80211_CRDA_SUPPORT
+	bool "altobeam wifi6 WiFi cfg80211 CRDA"
+	depends on CPTCFG_CFG80211
+	default y
+	help
+	  need wifi6 support, used backport mac80211/cfg80211  
+	  
+config CPTCFG_CFG80211_COUNTRY_CODE
+	bool "altobeam wifi cfg80211 support country code"
+	depends on CPTCFG_CFG80211_CRDA_SUPPORT
+	default y
+	help
+	  need wifi6 support, used backport mac80211/cfg80211 
+
+
+config WPA3_CFG80211_EX
+	bool "altobeam support wpa3 in new cfg80211 but less kernel version "	
+	default n
+	help
+        driver support wpa3, this will define CONFIG_CFG80211_COMPAT_MODIFIEDE , 
+		if support wifi6 in less kernel also need this
+menuconfig ATBM_BLE_WIFI6
+	bool "altobeam support ble module"
+	depends on (ATBM_MENUCONFIG_WIFI6 || ATBM_APOLLO_WIFI6)
+    default n
+    help
+     need driver support ble,if just support say no
+
+choice
+    prompt "Select which ble driver will use"
+    depends on ATBM_BLE_WIFI6
+    default ATBM_BLE_WIFI_PLATFORM_WIFI6
+    help
+     include use ble module or wifi coexist module,coexist module only support ble adv
+config ATBM_BLE_WIFI_PLATFORM_WIFI6
+	bool "wifi driver will be support the ble stack app"
+	depends on ATBM_BLE_WIFI6
+	help
+	  need insmod both wifi module and ble stackapp 
+config ATBM_BLE_ADV_COEXIST_WIFI6
+    bool "use wifi adv coexist module"
+    depends on ATBM_BLE_WIFI6
+    help
+     only request wifi module
+endchoice
+
+
+
+
+config MAC80211_ATBM_NOINLINE_WIFI6
+	bool "Do not inline TX/RX handlers"
+	depends on MAC80211_ATBM_DEBUG_MENU_WIFI6
+	help
+	  This option affects code generation in mac80211, when
+	  selected some functions are marked "noinline" to allow
+	  easier debugging of problems in the transmit and receive
+	  paths.
+
+	  This option increases code size a bit and inserts a lot
+	  of function calls in the code, but is otherwise safe to
+	  enable.
+
+	  If unsure, say N unless you expect to be finding problems
+	  in mac80211.
+endif
+endif

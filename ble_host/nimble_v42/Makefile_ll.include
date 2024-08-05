@@ -1,0 +1,84 @@
+NIMBLE_INCLUDE_PATH := \
+	-I$(NIMBLE_ROOT)/nimble/include \
+	-I$(NIMBLE_ROOT)/nimble/controller/include \
+	-I$(NIMBLE_ROOT)/nimble/drivers/include/  \
+	-I$(NIMBLE_ROOT)/nimble/transport/uart/include \
+	-I$(NIMBLE_ROOT)/porting/nimble/include \
+	-I$(NIMBLE_ROOT)/porting/freertos/include \
+	-I$(NIMBLE_ROOT)/nimble/include/ \
+  	-I$(NIMBLE_ROOT)/porting/npl/freertos/include \
+  	-I$(NIMBLE_ROOT)/nimble/transport/ram/include \
+	-I$(NIMBLE_ROOT)/nimble/host/src \
+	-I$(NIMBLE_ROOT)/nimble/drivers/juno/include \
+	-I$(NIMBLE_ROOT)/nimble \
+	-I$(NIMBLE_ROOT)/nimble/drivers/juno/src
+
+			
+
+NIMBLE_CLRT_SRC := \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_sched.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_xcvr.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_whitelist.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_ctrl.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_hci.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_supp_cmd.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_adv.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_conn.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_resolv.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_conn_hci.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_rand.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_scan.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_dtm.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_hci_ev.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_utils.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_powersave.c \
+	$(NIMBLE_ROOT)/nimble/controller/src/ble_ll_sync.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/lctr_act_cis_slave.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/lctr_isr_cis.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/lctr_isr_cis_master.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/lctr_isr_cis_slave.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/lctr_main_cis.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/lctr_main_iso.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/lctr_main_iso_data.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/le_audio_bis_center.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/le_audio_cis_center.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/le_audio_cis_peripheral.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/le_audio_common.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/le_audio_event.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/le_audio_hci.c	\
+	$(NIMBLE_ROOT)/nimble/controller/src/le_audio_stream.c
+	
+NIMBLE_DRIVERS_SRC := \
+	$(NIMBLE_ROOT)/nimble/drivers/juno/src/ble_hw.c \
+	$(NIMBLE_ROOT)/nimble/drivers/juno/src/ble_phy.c
+
+NIMBLE_TRAN_SRC := \
+	$(NIMBLE_ROOT)/nimble/transport/ram/src/ble_hci_ram_ll.c \
+	$(NIMBLE_ROOT)/main/ll_main.c
+
+	
+NIMBLE_PORT_SRC := \
+ 	$(NIMBLE_ROOT)/porting/nimble/src/endian.c \
+ 	$(NIMBLE_ROOT)/porting/nimble/src/hal_timer.c \
+	$(NIMBLE_ROOT)/porting/nimble/src/mem.c \
+	$(NIMBLE_ROOT)/porting/nimble/src/os_cputime_pwr2.c \
+	$(NIMBLE_ROOT)/porting/nimble/src/os_cputime.c \
+	$(NIMBLE_ROOT)/porting/nimble/src/os_mbuf.c \
+	$(NIMBLE_ROOT)/porting/nimble/src/os_mempool.c \
+  $(NIMBLE_ROOT)/porting/nimble/src/os_msys_init.c \
+  $(NIMBLE_ROOT)/porting/npl/freertos/src/npl_os_freertos.c 
+
+
+
+
+LIB_NIMBLE_SRC	:=      		${NIMBLE_CLRT_SRC} \
+					${NIMBLE_DRIVERS_SRC} \
+					${NIMBLE_TRAN_SRC} \
+					${NIMBLE_PORT_SRC}
+					
+					
+	
+					
+					
+					

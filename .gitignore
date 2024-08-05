@@ -1,0 +1,11 @@
+*.o
+*.o.d
+*.o.cmd
+*.ko
+*.ko.cmd
+*.mod.c
+modules.order
+Module.symvers
+.tmp_versions
+.config.old
+atbm_kconf/mconf

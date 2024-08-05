@@ -1,0 +1,192 @@
+NIMBLE_INCLUDE_PATH := \
+	-I$(NIMBLE_ROOT)/cli \
+	-I$(NIMBLE_ROOT)/ext/tinycrypt/include \
+	-I$(NIMBLE_ROOT)/nimble/include \
+	-I$(NIMBLE_ROOT)/nimble/controller/include \
+	-I$(NIMBLE_ROOT)/nimble/host/include/  \
+	-I$(NIMBLE_ROOT)/nimble/host/mesh/include/ \
+	-I$(NIMBLE_ROOT)/nimble/host/services/include \
+	-I$(NIMBLE_ROOT)/nimble/host/src/include \
+	-I$(NIMBLE_ROOT)/nimble/host/src/include \
+	-I$(NIMBLE_ROOT)/nimble/host/store/config/include \
+	-I$(NIMBLE_ROOT)/nimble/host/util/include  \
+	-I$(NIMBLE_ROOT)/nimble/transport/uart/include \
+	-I$(NIMBLE_ROOT)/porting/nimble/include \
+	-I$(NIMBLE_ROOT)/nimble/include/ \
+  	-I$(NIMBLE_ROOT)/nimble/host/services/ans/include \
+  	-I$(NIMBLE_ROOT)/nimble/host/services/bas/include  \
+  	-I$(NIMBLE_ROOT)/nimble/host/services/gap/include  \
+  	-I$(NIMBLE_ROOT)/nimble/host/services/gatt/include \
+  	-I$(NIMBLE_ROOT)/nimble/host/services/ias/include \
+  	-I$(NIMBLE_ROOT)/nimble/host/services/lls/include \
+  	-I$(NIMBLE_ROOT)/nimble/host/services/tps/include \
+  	-I$(NIMBLE_ROOT)/nimble/host/services/dis/include \
+  	-I$(NIMBLE_ROOT)/nimble/transport/ram/include \
+	-I$(NIMBLE_ROOT)/nimble/host/src	\
+	-I$(NIMBLE_ROOT)/nimble/drivers/juno/src \
+	-I$(NIMBLE_ROOT)/nimble/host/store/ram/include \
+	-I$(NIMBLE_ROOT)/nimble/host/mesh/src \
+	-I$(NIMBLE_ROOT)/nimble/host/mesh/include
+  
+ifneq ($(CONFIG_LINUX_BLE_STACK_APP), y)
+NIMBLE_INCLUDE_PATH :=  -I$(NIMBLE_ROOT)/porting/npl/include 
+endif
+  
+NIMBLE_EXT_SRC :=   $(NIMBLE_ROOT)/ext/tinycrypt/src/aes_decrypt.o \
+					$(NIMBLE_ROOT)/ext/tinycrypt/src/aes_encrypt.o \
+					$(NIMBLE_ROOT)/ext/tinycrypt/src/cbc_mode.o \
+					$(NIMBLE_ROOT)/ext/tinycrypt/src/ccm_mode.o \
+					$(NIMBLE_ROOT)/ext/tinycrypt/src/cmac_mode.o \
+					$(NIMBLE_ROOT)/ext/tinycrypt/src/ctr_mode.o \
+					$(NIMBLE_ROOT)/ext/tinycrypt/src/ctr_prng.o \
+					$(NIMBLE_ROOT)/ext/tinycrypt/src/ecc_dh.o \
+					$(NIMBLE_ROOT)/ext/tinycrypt/src/ecc_dsa.o \
+					$(NIMBLE_ROOT)/ext/tinycrypt/src/ecc.o \
+					$(NIMBLE_ROOT)/ext/tinycrypt/src/hmac_prng.o \
+					$(NIMBLE_ROOT)/ext/tinycrypt/src/hmac.o \
+					$(NIMBLE_ROOT)/ext/tinycrypt/src/sha256.o \
+					$(NIMBLE_ROOT)/ext/tinycrypt/src/utils.o
+
+
+NIMBLE_HOST_SERVERS_SRC	:= \
+	$(NIMBLE_ROOT)/nimble/host/services/ans/src/ble_svc_ans.o \
+	$(NIMBLE_ROOT)/nimble/host/services/bas/src/ble_svc_bas.o \
+	$(NIMBLE_ROOT)/nimble/host/services/gap/src/ble_svc_gap.o \
+	$(NIMBLE_ROOT)/nimble/host/services/gatt/src/ble_svc_gatt.o \
+	$(NIMBLE_ROOT)/nimble/host/services/ias/src/ble_svc_ias.o \
+	$(NIMBLE_ROOT)/nimble/host/services/lls/src/ble_svc_lls.o \
+	$(NIMBLE_ROOT)/nimble/host/services/tps/src/ble_svc_tps.o
+	
+NIMBLE_HOST_SRC_SRC :=\
+	$(NIMBLE_ROOT)/nimble/host/src/ble_att.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_att_clt.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_att_cmd.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_att_svr.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_eddystone.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_gap.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_gattc.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_gatts.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_adv.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_atomic.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_cfg.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_conn.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_dbg.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_flow.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_hci.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_hci_cmd.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_hci_evt.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_hci_util.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_id.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_log.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_mbuf.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_mqueue.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_misc.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_pvcy.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_startup.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_hs_stop.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_ibeacon.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_l2cap.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_l2cap_coc.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_l2cap_sig.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_l2cap_sig_cmd.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_monitor.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_sm_alg.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_sm.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_sm_cmd.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_sm_lgcy.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_sm_sc.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_store.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_store_util.o \
+	$(NIMBLE_ROOT)/nimble/host/src/ble_uuid.o
+
+NIMBLE_HOST_STORE_SRC :=\
+	$(NIMBLE_ROOT)/nimble/host/store/config/src/ble_store_config_conf.o \
+	$(NIMBLE_ROOT)/nimble/host/store/config/src/ble_store_config.o \
+	$(NIMBLE_ROOT)/nimble/host/store/ram/src/ble_store_ram.o
+
+NIMBLE_HOST_UTIL_SRC :=\
+    $(NIMBLE_ROOT)/nimble/host/util/src/addr.o
+    
+NIMBLE_SRC_SRC := \
+	$(NIMBLE_ROOT)/nimble/src/ble_util.o
+
+NIMBLE_TRAN_SRC := \
+	$(NIMBLE_ROOT)/cli/cli.o \
+	$(NIMBLE_ROOT)/cli/ble_at_cmd.o \
+	$(NIMBLE_ROOT)/apps/main.o \
+	$(NIMBLE_ROOT)/apps/ble.o
+
+ifeq ($(CONFIG_LINUX_BLE_STACK_APP), y)
+NIMBLE_TRAN_SRC += $(NIMBLE_ROOT)/nimble/transport/ioctl/ble_hci_hif.o 
+else
+NIMBLE_TRAN_SRC += $(NIMBLE_ROOT)/nimble/transport/ram/src/ble_hci_hif.o 
+endif
+	
+NIMBLE_PORT_SRC := \
+ 	$(NIMBLE_ROOT)/porting/nimble/src/endian.o \
+	$(NIMBLE_ROOT)/porting/nimble/src/mem.o \
+	$(NIMBLE_ROOT)/porting/nimble/src/nimble_port.o \
+	$(NIMBLE_ROOT)/porting/nimble/src/os_mbuf.o \
+	$(NIMBLE_ROOT)/porting/nimble/src/os_mempool.o \
+  	$(NIMBLE_ROOT)/porting/nimble/src/os_msys_init.o 
+	
+ifneq ($(CONFIG_LINUX_BLE_STACK_APP), y)
+NIMBLE_PORT_SRC +=   	$(NIMBLE_ROOT)/porting/npl/src/nimble_port_os.o \
+  	$(NIMBLE_ROOT)/porting/npl/src/npl_os.o
+endif
+
+
+NIMBLE_BT_SHELL_SRC:= \
+ 	$(NIMBLE_ROOT)/apps/btshell/src/btshell.o \
+ 	$(NIMBLE_ROOT)/apps/btshell/src/cmd.o \
+ 	$(NIMBLE_ROOT)/apps/btshell/src/cmd_gatt.o \
+ 	$(NIMBLE_ROOT)/apps/btshell/src/cmd_l2cap.o \
+ 	$(NIMBLE_ROOT)/apps/btshell/src/gatt_svr.o \
+ 	$(NIMBLE_ROOT)/apps/btshell/src/misc.o \
+ 	$(NIMBLE_ROOT)/apps/btshell/src/parse.o
+
+
+NIMBLE_HOST_MESH_SRC := \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/access.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/adv.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/beacon.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/cfg_cli.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/cfg_srv.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/friend.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/glue.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/health_cli.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/health_srv.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/light_model.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/lpn.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/mesh.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/model_cli.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/model_srv.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/net.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/prov.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/proxy.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/setting.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/shell.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/testing.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/transport.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/mesh_atomic.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/provisioner.o \
+	$(NIMBLE_ROOT)/nimble/host/mesh/src/provisioner_proxy.o
+	
+NIMBLE_MESH_DEMO_SRC := \
+	$(NIMBLE_ROOT)/apps/blemesh_demo/mesh_demo.o
+
+LIB_NIMBLE_SRC	:= ${NIMBLE_DRIVERS_SRC} \
+					${NIMBLE_HOST_SERVERS_SRC} \
+					${NIMBLE_HOST_SRC_SRC} \
+					${NIMBLE_HOST_STORE_SRC} \
+					${NIMBLE_HOST_UTIL_SRC} \
+					${NIMBLE_SRC_SRC} \
+					${NIMBLE_TRAN_SRC} \
+					${NIMBLE_PORT_SRC}  ${NIMBLE_EXT_SRC}  $(NIMBLE_BT_SHELL_SRC)
+					
+ifeq (y,$(MESH_OPEN))
+LIB_NIMBLE_SRC += ${NIMBLE_HOST_MESH_SRC} ${NIMBLE_MESH_DEMO_SRC}
+endif				
+
+					

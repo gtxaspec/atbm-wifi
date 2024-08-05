@@ -1,0 +1,242 @@
+############################################################################
+#			ATBM WiFi Product Select
+#CONFIG_ATBM601x: 1T1R 80211b/g/n, HT20
+#if yout want to change .conf ,please do make menuconfig in current path
+############################################################################
+-include .config
+############################################################################
+#
+#	The Follow Code Of The Makefile Should Not Be Changed 
+#
+############################################################################
+
+
+
+PWD:=$(shell pwd)
+WIFI_INSTALL_DIR := $(PWD)/driver_install/
+
+k-dir:=$(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
+NOSTDINC_FLAGS := -I$(k-dir)/include/ \
+	-include $(k-dir)/include/linux/compat-2.6.h \
+	-DCOMPAT_STATIC 
+ifeq ($(CONFIG_CPTCFG_CFG80211),y)
+NOSTDINC_FLAGS +=	-I$(k-dir)/include/backport-include \
+	-I$(k-dir)/include/uapi 
+endif
+#####################################################
+export
+ifeq ($(CONFIG_ATBM_MODULE_NAME_WIFI6),)
+CONFIG_ATBM_MODULE_NAME_WIFI6 = atbm_wifi6
+endif
+ifeq ($(CONFIG_ATBM_DEFAULT_COUNTRY_CODE_WIFI6),)
+CONFIG_ATBM_DEFAULT_COUNTRY_CODE_WIFI6 = "00"
+endif
+ifeq ($(CONFIG_ATBM_WIFIIF1_NAME_WIFI6),)
+CONFIG_ATBM_WIFIIF1_NAME_WIFI6 = "wlan%d"
+endif
+ifeq ($(CONFIG_ATBM_WIFIIF2_NAME_WIFI6),)
+CONFIG_ATBM_WIFIIF2_NAME_WIFI6 = "p2p%d"
+endif
+ifeq ($(CONFIG_ATBM_USB_VID_WIFI6),)
+CONFIG_ATBM_USB_VID_WIFI6 = 0x007a
+endif
+ifeq ($(CONFIG_ATBM_USB_PID_WIFI6),)
+CONFIG_ATBM_USB_PID_WIFI6 = 0x8888
+endif
+
+ifeq ($(CONFIG_ATBM_SDIO_VID_WIFI6),)
+CONFIG_ATBM_SDIO_VID_WIFI6 = 0x007a
+endif
+ifeq ($(CONFIG_ATBM_SDIO_PID_WIFI6),)
+CONFIG_ATBM_SDIO_PID_WIFI6 = 0x6011
+endif
+ifeq ($(CONFIG_ATBM_MODULE_DRIVER_NAME_WIFI6),)
+CONFIG_ATBM_MODULE_DRIVER_NAME_WIFI6 = "atbm_wlan6"
+endif
+ifeq ($(CONFIG_ATBM_PLATFORM_DEVICE_NAME_WIFI6),)
+CONFIG_ATBM_PLATFORM_DEVICE_NAME_WIFI6 = "atbm_dev_wifi"
+endif
+ifeq ($(CONFIG_ATBM_MODULE_PM_STAYAWK_WIFI6),)
+CONFIG_ATBM_PLATFORM_DEVICE_NAME_WIFI6 = "pm_stayawake"
+endif
+ifeq ($(CONFIG_ATBM_FW_NAME_WIFI6),)
+CONFIG_ATBM_FW_NAME_WIFI6="fw.bin"
+endif
+export
+SDIO_HOST      ?= $(shell echo $(CONFIG_ATBM_SDIO_MMCx_WIFI6))
+IF1NAME        ?= $(shell echo $(CONFIG_ATBM_WIFIIF1_NAME_WIFI6))
+IF2NAME        ?= $(shell echo $(CONFIG_ATBM_WIFIIF2_NAME_WIFI6))
+FW             ?= $(shell echo $(CONFIG_ATBM_FW_NAME_WIFI6))
+MODULES_NAME   ?= $(shell echo $(CONFIG_ATBM_MODULE_NAME_WIFI6))
+USBVID		   ?= $(shell echo $(CONFIG_ATBM_USB_VID_WIFI6))
+USBPID		   ?= $(shell echo $(CONFIG_ATBM_USB_PID_WIFI6))
+SDIOVID			?=$(shell echo $(CONFIG_ATBM_SDIO_VID_WIFI6))
+SDIOPID			?=$(shell echo $(CONFIG_ATBM_SDIO_PID_WIFI6))
+MODDRVNAME	   ?= $(shell echo $(CONFIG_ATBM_MODULE_DRIVER_NAME_WIFI6))
+PLFDEVNAME	   ?= $(shell echo $(CONFIG_ATBM_PLATFORM_DEVICE_NAME_WIFI6))
+MODPMSTAYAWK   ?= $(shell echo $(CONFIG_ATBM_MODULE_PM_STAYAWK_WIFI6))
+
+SAEAUTHEN      ?= $(CONFIG_ATBM_FUNC_SAE_AUTHEN_WIFI6)
+LOAD_FW_H      ?= $(CONFIG_ATBM_USE_FIRMWARE_H_WIFI6)
+SKB_DEBUG      ?= $(CONFIG_ATBM_FUNC_SKB_DEBUG_WIFI6)
+MEM_DEBUG      ?= $(CONFIG_ATBM_FUNC_SKB_DEBUG_WIFI6)
+BRIDGE         ?= $(CONFIG_ATBM_SUPPORT_BRIDGE_WIFI6)
+MONITOR        ?= $(CONFIG_ATBM_FUNC_MONITOR_WIFI6)
+EARLYSUSPEND   ?= $(CONFIG_ATBM_FUNC_EARLYSUSPEND_WIFI6)
+NOTXCONFIRM    ?= $(CONFIG_ATBM_FUNC_NOTXCONFIRM_WIFI6)
+CH5G           ?= $(CONFIG_ATBM_FUNC_CHANNEL_5G_PRETEND_2G_WIFI6)
+ONLY_HT20		?= $(CONFIG_ATBM_WITHBAND_ONLY_HT20_WIFI6)
+USBAGGTX       ?= $(CONFIG_ATBM_FUNC_USB_AGGRTX_WIFI6)
+USBDMABUFF     ?= $(CONFIG_ATBM_FUNC_USB_DMABUFF_WIFI6)
+USBCMDENHANCE  ?= $(CONFIG_ATBM_FUNC_USB_CMD_ENHANCE_WIFI6)
+USBDATAENHANCE ?= $(CONFIG_ATBM_FUNC_USB_DATA_ENHANCE_WIFI6)
+PMRELODDFW     ?= $(CONFIG_ATBM_FUNC_PS_WAKEUP_RELOAD_FW_WIFI6)
+USB_BUS        ?= $(CONFIG_ATBM_USB_BUS_WIFI6)
+SDIO_BUS       ?= $(CONFIG_ATBM_SDIO_BUS_WIFI6)
+SPI_BUS        ?= $(CONFIG_ATBM_SPI_BUS_WIFI6)
+CHECKSUM       ?= $(CONFIG_ATBM_FUNC_HW_CHSUM_WIFI6)
+SWRATECTRL     ?= $(CONFIG_ATBM_SW_RATE_CTRL_WIFI6)
+P2PENABLE      ?= $(CONFIG_ATBM_FUNC_P2P_ENABLE_WIFI6)
+SWENC          ?= $(CONFIG_ATBM_FUNC_SW_ENC_WIFI6)
+MODULEFS       ?= $(CONFIG_ATBM_FUNC_MODULE_FS_WIFI6)
+DEVCTRL        ?= $(CONFIG_ATBM_FUNC_DEV_CTRL_API_WIFI6)
+SMARTCONFIG    ?= $(CONFIG_ATBM_FUNC_SMARTCONFIG_WIFI6)
+CONFIG_ARESB   ?= $(CONFIG_ATBM603x_WIFI6)
+CONFIG_HERA    ?= $(CONFIG_ATBM6041_WIFI6)
+CONFIG_CRONUS  ?= $(CONFIG_ATBM606x_WIFI6)
+NEED_SCOND_INTERFACE ?= $(CONFIG_NEED_P2P0_INTERFACE_WIFI6)
+CUSTORMSPECIAL ?= y
+SENDSPECIAL_MGMT ?= y
+CONFIG_NOT_SUPPORT_40M_CHW ?= $(CONFIG_ATBM601x_WIFI6)
+DRVLOADERFAST  ?= $(CONFIG_ATBM_FUNC_DRV_LOADER_FAST_WIFI6)
+PRI_IE         ?= $(CONFIG_ATBM_FUNC_PRIVE_IE_WIFI6)
+MONHDRPRISM         ?= $(CONFIG_ATBM_FUNC_MONITOR_HDR_PRISM_WIFI6)
+BASETUP        ?= $(CONFIG_ATBM_FUNC_DRIVER_SETUP_AMPDU_WIFI6)
+COUNTRY_CODE	?=$(CONFIG_CPTCFG_CFG80211_COUNTRY_CODE_WIFI6)
+COUNTRY_VAL		?= $(shell echo $(CONFIG_ATBM_DEFAULT_COUNTRY_CODE_WIFI6))
+USBINTR			?=$(CONFIG_ATBM_USB_INTR_WIFI6)
+BLEHOST			?=$(CONFIG_ATBM_BLE_HOST_DRIVER_WIFI6)
+BLEPLATFORM		?=$(CONFIG_ATBM_BLE_WIFI_PLATFORM_WIFI6)
+BLECOEXIST      ?=$(CONFIG_ATBM_BLE_ADV_COEXIST_WIFI6)
+BLEMODULE		?=$(CONFIG_ATBM_BLE_HOST_DRIVER_WIFI6)$(CONFIG_ATBM_BLE_WIFI_PLATFORM_WIFI6)
+BLECODESRAME    ?=$(CONFIG_ATBM_BLE_WIFI_PLATFORM_WIFI6)
+BLUEDROID	?=$(CONFIG_BLUEDROID_WIFI6)
+BLE			?=$(CONFIG_ATBM_BLE_WIFI6)
+##################################################
+
+MULT_NAME=y
+ATBM_MAKEFILE_SUB=y
+#####################################################
+export 
+ifeq ($(CONFIG_ATBM_APOLLO_WIFI6),)
+CONFIG_ATBM_APOLLO_WIFI6=m
+endif
+
+export
+ifeq ($(CONFIG_CPTCFG_CFG80211),y)
+CPTCFG_CFG80211=m
+endif
+
+export
+ifeq ($(CONFIG_ATBM_BLE_HOST_DRIVER_WIFI6),y)
+CONFIG_ATBM_BLE_HOST_DRIVER_WIFI6=m
+endif
+################### WIRELESS #########################
+
+ifeq ($(USB_BUS_WIFI6),y)
+HIF:=usb
+endif
+ifeq ($(SDIO_BUS_WIFI6),y)
+HIF:=sdio
+endif
+ifeq ($(SPI_BUS_WIFI6),y)
+HIF:=spi
+endif
+
+all: get_ver modules install
+get_ver:
+	@echo "**************************************"
+	@echo "driver version"
+	@cat hal_apollo/svn_version.h | awk '{print $3}'
+	@echo "**************************************"
+modules:clean
+	@echo "arch=$(ARCH)"						
+	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) ATBM_SYSTEM=$(SYS) -C $(KDIR) M=$(shell pwd)  modules -j8
+#	$(MAKE) -C $(KDIR) M=$(PWD) modules
+	
+strip:
+	$(CROSS_COMPILE)strip $(WIFI_INSTALL_DIR)/$(MODULES_NAME).ko --strip-unneeded
+ifneq ($(CONFIG_CPTCFG_CFG80211),) 
+	$(CROSS_COMPILE)strip $(WIFI_INSTALL_DIR)/cfg80211.ko --strip-unneeded
+endif
+ifneq ($(BLEMODULE),)
+	#$(CROSS_COMPILE)strip $(WIFI_INSTALL_DIR)/ble*.ko --strip-unneeded
+endif
+
+install:modules
+	mkdir -p $(WIFI_INSTALL_DIR)
+	chmod 777 $(WIFI_INSTALL_DIR)
+	cp hal_apollo/*.ko         $(WIFI_INSTALL_DIR)
+ifneq ($(CONFIG_CPTCFG_CFG80211),) 
+	cp wireless/*.ko         $(WIFI_INSTALL_DIR)
+endif
+ifneq ($(BLEMODULE),)
+	#cp ble_host/*.ko         $(WIFI_INSTALL_DIR)
+endif
+
+ble_demo:
+	@echo "CONFIG_ATBM_BLE_HOST_DRIVER=$(CONFIG_ATBM_BLE_HOST_DRIVER_WIFI6)"
+ifneq ($(BLEMODULE),)
+	mkdir -p $(WIFI_INSTALL_DIR)
+#	cp -f ble_host/tools/ble_smt_demo.c ble_smt_demo/
+	#$(MAKE) ble_demo -f ble_smt_demo/Makefile  ARCH=$(ARCH)  CROSS_COMPILE=$(CROSS_COMPILE) KDIR=$(KERDIR) SYS=$(sys) PLAT=$(platform) -j8
+	$(MAKE) tools_install -f ble_host/tools/Makefile  ARCH=$(ARCH)  CROSS_COMPILE=$(CROSS_COMPILE) KDIR=$(KERDIR) SYS=$(sys) PLAT=$(platform) -j8
+	#cp -f ble_host/tools/ble_smt $(WIFI_INSTALL_DIR)
+	cp -f ble_host/tools/atbm_cli $(WIFI_INSTALL_DIR)
+	cp -f ble_host/tools/atbm_tool $(WIFI_INSTALL_DIR)
+else
+	@echo "not open CONFIG_ATBM_BLE_HOST_DRIVER configure!"
+endif
+
+ble_stack:
+ifneq ($(CONFIG_ATBM_BLE_WIFI_PLATFORM_WIFI6),)
+	@echo "start ble host"
+	$(MAKE) ble_stack -f ble_host/Makefile  ARCH=$(ARCH)  CROSS_COMPILE=$(CROSS_COMPILE) KDIR=$(KERDIR) SYS=$(sys) PLAT=$(platform) -j8
+	$(MAKE) tools_install -f ble_host/tools/Makefile  ARCH=$(ARCH)  CROSS_COMPILE=$(CROSS_COMPILE) KDIR=$(KERDIR) SYS=$(sys) PLAT=$(platform) -j8
+	#cp -f ble_host/tools/ble_smt $(WIFI_INSTALL_DIR)
+	mkdir -p $(WIFI_INSTALL_DIR)
+	cp -f ble_host/tools/atbm_cli $(WIFI_INSTALL_DIR)
+	cp -f ble_host/tools/atbm_tool $(WIFI_INSTALL_DIR)
+endif
+ble_stack_clean:
+	$(MAKE) ble_stack_clean -f ble_host/Makefile  ARCH=$(ARCH)  CROSS_COMPILE=$(CROSS_COMPILE) KDIR=$(KERDIR) SYS=$(sys) PLAT=$(platform) -j8
+
+
+ble_coex:
+	@echo "CONFIG_ATBM_BLE_ADV_COEXIST=$(CONFIG_ATBM_BLE_ADV_COEXIST_WIFI6)"
+ifneq ($(BLECOEXIST),)
+	mkdir -p $(WIFI_INSTALL_DIR)
+	$(MAKE) ble_coex -f ble_coexist_demo/Makefile  ARCH=$(ARCH)  CROSS_COMPILE=$(CROSS_COMPILE) KDIR=$(KERDIR) SYS=$(sys) PLAT=$(platform) -j8
+	cp -f ble_coexist_demo/ble_coex $(WIFI_INSTALL_DIR)
+else
+	@echo "not open CONFIG_ATBM_BLE_ADV_COEXIST configure!"
+endif
+
+uninstall:
+#	rm -f/wifihome/tftpboot/wuping/hmac/*.ko
+
+clean:hal_clean
+	rm -rf hal_apollo/*.o
+	rm -rf hal_apollo/*.ko  
+	rm -rf modules.* Module.* 
+
+
+hal_clean:
+	find ./ -name ".*.cmd" -exec rm -f {} \;
+	find ./ -name "*.o" -exec rm -f {} \;
+	find ./ -name "*.ko" -exec rm -f {} \;
+	find ./ -name "*.cmd" -exec rm -f {} \;
+	find ./ -name "*.mod" -exec rm -f {} \;
+	find ./ -name "*.order" -exec rm -f {} \;
+	
+	
