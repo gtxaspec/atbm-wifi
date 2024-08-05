@@ -126,6 +126,7 @@ endif
 #endif
 ifneq ($(CONFIG_CPTCFG_CFG80211),) 
 obj-$(CONFIG_CPTCFG_CFG80211) += wireless/
+CPTCFG_CFG80211=m
 endif
 
 ifeq ($(CONFIG_ATBM_APOLLO_WIFI6),)
