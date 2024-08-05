@@ -1,6 +1,8 @@
 #############################################################################
 #               Makefile For Kernel
 ############################################################################
+-include $(PWD)/.config
+
 k-dir:=$(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
 NOSTDINC_FLAGS := -I$(k-dir)/include/ \
 	-include $(k-dir)/include/linux/compat-2.6.h \
