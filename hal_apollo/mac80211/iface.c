@@ -1992,7 +1992,7 @@ static void ieee80211_iface_process_deliver_skb(struct ieee80211_sub_if_data *sd
 
 	while ((skb = atbm_skb_dequeue(&sdata->skb_deliver))){
 		u8 cb = skb->cb[0];
-		atbm_printk_always("[%s]:[%x] deliver slow\n",sdata->name,skb->protocol);
+		atbm_printk_warn("[%s]:[%x] deliver slow\n",sdata->name,skb->protocol);
 		skb->cb[0] = 0;
 		switch(cb){
 		case IEEE80211_IF_FRAME_TYPE_PAE:
