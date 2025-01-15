@@ -734,7 +734,7 @@ static void ieee80211_sta_reorder_release(struct ieee80211_hw *hw,
 					    "release an RX reorder frame due to timeout on earlier frames\n");
 #endif
 			if(skipped){
-				printk("release an RX reorder frame due to timeout sn %x\n",tid_agg_rx->head_seq_num);
+				atbm_printk_debug("release an RX reorder frame due to timeout sn %x\n",tid_agg_rx->head_seq_num);
 			}
 			ieee80211_release_reorder_frame(hw, tid_agg_rx, j,frames);
 
