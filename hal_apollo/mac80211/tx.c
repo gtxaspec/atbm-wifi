@@ -1143,7 +1143,7 @@ fail:
 static enum work_done_result ieee80211_dhcp_work_done(struct ieee80211_work *wk,
 						  struct sk_buff *skb)
 {
-	atbm_printk_err("dhcp done");
+	atbm_printk_mgmt("dhcp done");
 	atbm_dev_kfree_skb(wk->dhcp.frame);
 	return WORK_DONE_DESTROY;
 }
@@ -1176,7 +1176,7 @@ ieee80211_wk_dhcp_work(struct ieee80211_work *wk)
 		wk->timeout = jiffies;
 		wk->dhcp.tries--;
 	}
-	atbm_printk_always("dhcp work(%d)\n",wk->dhcp.tries);
+	atbm_printk_mgmt("dhcp work(%d)\n",wk->dhcp.tries);
 	return WORK_ACT_NONE;
 }
 static int ieee80211_wk_start_dhcp_work(struct ieee80211_sub_if_data *sdata,struct sk_buff *skb)

@@ -3349,7 +3349,7 @@ static enum work_done_result ieee80211_connecting_work_done(struct ieee80211_wor
 {
 	struct ieee80211_sub_if_data *sdata = wk->sdata;
 	struct ieee80211_local *local = sdata->local;
-	atbm_printk_always("connecting done for waitting dhcp  \n");
+	atbm_printk_mgmt("connecting done for waitting dhcp  \n");
 	if(atomic_read(&sdata->connectting) == IEEE80211_ATBM_CONNECT_RUN)
 		atomic_set(&local->connectting,0);
 	atomic_set(&sdata->connectting,IEEE80211_ATBM_CONNECT_DONE);
