@@ -1877,11 +1877,9 @@ int access_file(char *path, char *buffer, int size, int isRead)
 #endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0))
 			ret = kernel_read(fp,buffer,size,&fp->f_pos);
-#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 37))
-			ret = kernel_read(fp,fp->f_pos,buffer,size);
 
 #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 14))
-			ret = kernel_read(fp,&fp->f_pos,buffer,size);
+			ret = kernel_read(fp,fp->f_pos,buffer,size);
 #else
 			ret = vfs_read(fp,buffer,size,&fp->f_pos);
 #endif
@@ -1903,10 +1901,8 @@ int access_file(char *path, char *buffer, int size, int isRead)
 #endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0))
 			ret = kernel_write(fp,buffer,size,&fp->f_pos);
-#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 37))
-			ret = kernel_write(fp,buffer,size,fp->f_pos);
 #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 14))
-			ret = kernel_write(fp,&fp->f_pos,buffer,size);
+			ret = kernel_write(fp,buffer,size,fp->f_pos);
 #else
 			ret = vfs_write(fp,buffer,size,&fp->f_pos);
 #endif
