@@ -738,6 +738,9 @@ err:
 #ifdef CONFIG_ATBM_SUPPORT_BLUEZ
 static void ieee80211_ble_bluez_recv(struct hci_dev *hdev,struct sk_buff *skb)
 {
+	/* Ensure LE is enabled for incoming connections */
+	set_bit(HCI_LE_ENABLED, &hdev->dev_flags);
+
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 12, 0))
 	hci_recv_frame(hdev,skb);
 #else
@@ -868,6 +871,75 @@ static int ieee80211_ble_bluez_flush(struct hci_dev *hdev)
 exit:
 	return 0;
 }
+
+/* Fake a Command Complete event for unsupported commands */
+static int fake_command_complete(struct hci_dev *hdev, u16 opcode, u8 status, const u8 *params, u8 params_len)
+{
+	struct sk_buff *skb;
+	u8 *data;
+	u8 total_len = 3 + params_len; /* status + ncmd + params */
+
+	skb = bt_skb_alloc(total_len + 3, GFP_ATOMIC); /* +3 for event header */
+	if (!skb)
+		return -ENOMEM;
+
+	data = skb_put(skb, total_len + 3);
+
+	/* Event header */
+	data[0] = 0x0e; /* Command Complete event */
+	data[1] = total_len; /* Length */
+	data[2] = 1; /* ncmd = 1 */
+
+	/* Opcode (little endian) */
+	data[3] = opcode & 0xff;
+	data[4] = (opcode >> 8) & 0xff;
+
+	/* Status */
+	data[5] = status;
+
+	/* Parameters */
+	if (params_len > 0)
+		memcpy(&data[6], params, params_len);
+
+	memset(skb->cb, 0, sizeof(skb->cb));
+	bt_cb(skb)->pkt_type = 4; /* HCI_EVENT_PKT */
+
+	atbm_printk_ble("Faking Command Complete for opcode 0x%04x\n", opcode);
+
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 12, 0))
+	hci_recv_frame(hdev, skb);
+#else
+	skb->dev = (void *)hdev;
+	hci_recv_frame(skb);
+#endif
+
+	return 0;
+}
+
+/* Check if we need to fake a response for unsupported commands */
+static int handle_unsupported_command(struct hci_dev *hdev, struct sk_buff *skb)
+{
+	u16 opcode;
+	u8 accept_list_size;
+
+	if (skb->len < 3)
+		return 0; /* Not a valid command, let firmware handle it */
+
+	opcode = skb->data[0] | (skb->data[1] << 8);
+
+	switch (opcode) {
+	case 0x200f: /* LE Read Accept List Size (0x08|0x000f) */
+		atbm_printk_ble("Intercepting unsupported LE Read Accept List Size\n");
+		/* Consume the command SKB */
+		kfree_skb(skb);
+		/* Send fake response: accept list size = 8 */
+		accept_list_size = 8;
+		fake_command_complete(hdev, opcode, 0x00, &accept_list_size, 1);
+		return 1; /* Command handled */
+	}
+
+	return 0; /* Not handled, proceed normally */
+}
 #if (LINUX_VERSION_CODE <= KERNEL_VERSION(3, 4, 0))
 static void ieee80211_ble_bluez_destruct(struct hci_dev *hdev)
 {
@@ -909,6 +981,14 @@ static int ieee80211_ble_bluez_send_frame(
 	};
 	atbm_printk_ble("bluez send(%d)(%d)\n",bt_cb(skb)->pkt_type,skb->len);
 
+	/* Check if this is an unsupported command that we need to fake */
+	if (bt_cb(skb)->pkt_type == HCI_COMMAND_PKT) {
+		if (handle_unsupported_command(hdev, skb)) {
+			/* Command was handled, don't send to firmware */
+			return 0;
+		}
+	}
+
 	/* Prepend skb with frame type */
 	memcpy(skb_push(skb, 1), &bt_cb(skb)->pkt_type, 1);
 
@@ -918,7 +998,6 @@ static int ieee80211_ble_bluez_send_frame(
 		goto exit;
 	}
 	
-	atbm_printk_ble("bluez send (%d)\n",skb->len);
 	
 	WARN_ON(skb_copy_bits(skb,0,xmit_buff,skb->len));
 
@@ -938,7 +1017,11 @@ static int ieee80211_ble_bluez_init(struct ieee80211_ble_cdev *ble_cdev)
 	}
 
 	ble_cdev->hdev = hdev;
-	hdev->bus = HCI_USB;
+#if ATBM_USB_BUS
+	hdev->type = HCI_USB;
+#else
+	hdev->bus = HCI_SDIO;
+#endif
 	SET_HCIDEV_DEV(hdev, &ble_cdev->pdev->dev);
 	dev_set_drvdata(&hdev->dev, ble_cdev);
 
