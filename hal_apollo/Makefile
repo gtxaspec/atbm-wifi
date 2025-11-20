@@ -1,3 +1,11 @@
+# Implement multi_depend function for kernel 4.4 compatibility
+# Kernel 4.4 references multi_depend but doesn't define it (added in later kernels)
+define multi_depend_tmpl
+$$(obj)/$(1): $$(addprefix $$(obj)/,$$(foreach s,$(3),$$($(1:.o=)$$(s))))
+endef
+
+multi_depend = $(foreach m,$(1),$(eval $(call multi_depend_tmpl,$(m),$(2),$(3))))
+
 #CONFIG_TX_NO_CONFIRM
 #CONFIG_USB_AGGR_URB_TX
 #CONFIG_TX_NO_CONFIRM
@@ -619,6 +627,9 @@ $(ATBM_MODULES_NAME)-$(CONFIG_PM)  += pm.o
 
 
 obj-$(CONFIG_ATBM_APOLLO_WIFI6) += $(ATBM_MODULES_NAME).o
+
+# Call multi_depend to set up dependencies for kernel 4.4
+$(call multi_depend, $(ATBM_MODULES_NAME).o, .o, -y)
 
 ccflags-y += -D__CHECK_ENDIAN__
 MODFLAGS =-DMODULE -fno-pic

@@ -1,9 +1,20 @@
 # SPDX-License-Identifier: GPL-2.0
+
+# Implement multi_depend function for kernel 4.4 compatibility
+# Kernel 4.4 references multi_depend but doesn't define it (added in later kernels)
+define multi_depend_tmpl
+$$(obj)/$(1): $$(addprefix $$(obj)/,$$(foreach s,$(3),$$($(1:.o=)$$(s))))
+endef
+
+multi_depend = $(foreach m,$(1),$(eval $(call multi_depend_tmpl,$(m),$(2),$(3))))
+
 #ccflags-$(CONFIG_WIFI6) += -DCONFIG_ATBM_HE
 ccflags-y += -DCONFIG_ATBM_HE
 ccflags-$(CONFIG_CPTCFG_CFG80211) += -DCONFIG_CPTCFG_CFG80211=1 
 ccflags-$(CONFIG_CPTCFG_CFG80211) += -DCPTCFG_CFG80211=1
 ccflags-$(CONFIG_CPTCFG_CFG80211_WEXT) += -DCONFIG_CPTCFG_CFG80211_WEXT=1 -DCPTCFG_CFG80211_WEXT=1 -DCONFIG_WEXT_CORE=1 -DCONFIG_WEXT_PROC=1 -DCONFIG_WEXT_SPY=1 -DCONFIG_WEXT_PRIV=1
+# Define debugfs unconditionally to prevent redefinition errors
+ccflags-y += -DCONFIG_CPTCFG_CFG80211_DEBUGFS=1 -DCPTCFG_CFG80211_DEBUGFS=1
 #CONFIG_CPTCFG_CFG80211_COUNTRY_CODE
 ifneq ($(COUNTRY_CODE),)
 ccflags-y += -DCONFIG_CPTCFG_CFG80211_COUNTRY_CODE
@@ -23,9 +34,10 @@ obj-$(CONFIG_WEXT_PRIV) += wext-priv.o
 
 cfg80211-y += core.o sysfs.o radiotap.o util.o reg.o scan.o nl80211.o
 cfg80211-y += mlme.o ibss.o sme.o chan.o ethtool.o mesh.o ap.o trace.o ocb.o
-cfg80211-y += pmsr.o 
+cfg80211-y += pmsr.o
 cfg80211-y += backport-5.2.o backport-4.18.o backport-4.7.o  backport-4.0.o compat-3.7.o backport-genetlink.o
-cfg80211-$(CONFIG_OF) += of.o
+# Disable of.o - incompatible with kernel 3.10 (uses of_prop_next_u32 which doesn't exist)
+# cfg80211-$(CONFIG_OF) += of.o
 cfg80211-$(CONFIG_CPTCFG_CFG80211_DEBUGFS) += debugfs.o
 cfg80211-$(CONFIG_CPTCFG_CFG80211_WEXT) += wext-compat.o wext-sme.o
 cfg80211-$(COUNTRY_CODE) += regdb.o
@@ -36,6 +48,9 @@ cfg80211-$(CPTCFG_CFG80211_USE_KERNEL_REGDB_KEYS) += shipped-certs.o
 ifneq ($(CPTCFG_CFG80211_EXTRA_REGDB_KEYDIR),)
 cfg80211-y += extra-certs.o
 endif
+
+# Call multi_depend to set up dependencies for cfg80211.o for kernel 4.4
+$(call multi_depend, cfg80211.o, .o, -y -$(CONFIG_CPTCFG_CFG80211_DEBUGFS) -$(CONFIG_CPTCFG_CFG80211_WEXT) -$(COUNTRY_CODE) -$(CPTCFG_CFG80211_USE_KERNEL_REGDB_KEYS))
 
 $(obj)/shipped-certs.c: $(wildcard $(src)/certs/*.hex)
 	@$(kecho) "  GEN     $@"
