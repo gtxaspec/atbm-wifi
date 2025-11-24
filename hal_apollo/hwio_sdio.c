@@ -275,7 +275,7 @@ int atbm_data_read_unlock(struct atbm_common *hw_priv, void *buf, u32 buf_len)
 {
 	int ret = -1, retry = 1;
 	int buf_id_rx = hw_priv->buf_id_rx;
-	
+
 	while (retry <= MAX_RETRY) {
 		ret = __atbm_data_read(hw_priv,
 				ATBM_HIFREG_IN_OUT_QUEUE_REG_ID, buf,
@@ -286,7 +286,8 @@ int atbm_data_read_unlock(struct atbm_common *hw_priv, void *buf, u32 buf_len)
 			break;
 		} else {
 			retry++;
-			mdelay(1000);
+			/* Use much shorter delay - 10ms instead of 1000ms */
+			mdelay(10);
 			atbm_dbg(ATBM_APOLLO_DBG_ERROR, "%s,error :[%d]\n",
 					__func__, ret);
 		}
@@ -330,7 +331,8 @@ int atbm_data_force_write(struct atbm_common *hw_priv, const void *buf,
                         break;
                 } else {
                         retry++;
-                        mdelay(1000);
+                        /* Use much shorter delay - 10ms instead of 1000ms */
+                        mdelay(10);
                         atbm_dbg(ATBM_APOLLO_DBG_ERROR, "%s,%d,error :[%d]\n",
                                         __func__, __LINE__, ret);
                 }
@@ -360,7 +362,8 @@ int atbm_data_write_unlock(struct atbm_common *hw_priv, const void *buf,
 			break;
 		} else {
 			retry++;
-			mdelay(1000);
+			/* Use much shorter delay - 10ms instead of 1000ms */
+			mdelay(10);
 			atbm_dbg(ATBM_APOLLO_DBG_ERROR, "%s,%d,error :[%d]\n",
 					__func__, __LINE__, ret);
 		}

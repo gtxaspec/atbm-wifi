@@ -1071,11 +1071,19 @@ flush_continue:
 	}
 	
 	hw_priv->buf_id_offset = nsgs;
-	
-	if (sglen && WARN_ON(atbm_data_write(hw_priv,sg, sglen))) {		
+
+#ifdef CONFIG_ATBM_SDIO_TX_HOLD
+	/* Lock is already held by atbm_sdio_process_flush_sg, use unlock version */
+	if (sglen && WARN_ON(atbm_data_write_unlock(hw_priv,sg, sglen))) {
 		atbm_printk_err("%s: xmit data err\n",__func__);
 		goto xmit_err;
 	}
+#else
+	if (sglen && WARN_ON(atbm_data_write(hw_priv,sg, sglen))) {
+		atbm_printk_err("%s: xmit data err\n",__func__);
+		goto xmit_err;
+	}
+#endif
 	
 	cnf = NULL;
 	
@@ -1108,11 +1116,8 @@ static void atbm_sdio_process_flush_sg(struct sbus_priv *self)
 {
 	struct list_head sg_list;
 	struct sdio_scatterlist *sgl;
-	
+
 	INIT_LIST_HEAD(&sg_list);
-#ifdef CONFIG_ATBM_SDIO_TX_HOLD
-	atbm_sdio_lock(self);
-#endif	
 	spin_lock_bh(&self->xmit_path_lock);
 flush_continue:
 	self->flushing_sg = true;
@@ -1121,10 +1126,18 @@ flush_continue:
 
 	while (!list_empty(&sg_list)) {
 		sgl = list_first_entry(&sg_list, struct sdio_scatterlist, head);
-		
+
+#ifdef CONFIG_ATBM_SDIO_TX_HOLD
+		/* Acquire lock for each SG write to avoid holding it too long */
+		atbm_sdio_lock(self);
+#endif
 		atbm_sdio_drv_flush_sg(self,sgl);
+#ifdef CONFIG_ATBM_SDIO_TX_HOLD
+		/* Release lock after each SG write to let SDIO bus breathe */
+		atbm_sdio_unlock(self);
+#endif
 		atbm_sdio_release_sg(self,sgl);
-	}	
+	}
 
 	spin_lock_bh(&self->xmit_path_lock);
 	if(!list_empty(&self->sgs_pending)){
@@ -1132,11 +1145,7 @@ flush_continue:
 	}
 	self->flushing_sg = false;
 	spin_unlock_bh(&self->xmit_path_lock);
-	
-#ifdef CONFIG_ATBM_SDIO_TX_HOLD
-	atbm_sdio_unlock(self);
-#endif	
-	
+
 }
 static int atbm_sdio_sg_thread(void *priv)
 {
