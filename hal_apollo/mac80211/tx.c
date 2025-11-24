@@ -1069,7 +1069,10 @@ static netdev_tx_t _ieee80211_subif_start_xmit(struct sk_buff *skb,
 	
 	/* convert Ethernet header to proper 802.11 header (based on
 	 * operation mode) */
+	/* Extract ethertype in network byte order for comparison with control_port_protocol */
 	ethertype = (skb->data[12] << 8) | skb->data[13];
+	/* Convert to CPU byte order, then back to big-endian to match control_port_protocol format */
+	ethertype = cpu_to_be16(ethertype);
 
 	/*
 	 * There's no need to try to look up the destination
@@ -1084,10 +1087,12 @@ static netdev_tx_t _ieee80211_subif_start_xmit(struct sk_buff *skb,
 	/*
 	 * Drop unicast frames to unauthorised stations unless they are
 	 * EAPOL frames from the local station.
+	 * Note: ethertype is already in network byte order (big-endian) from line 1072,
+	 * so we don't need cpu_to_be16() here.
 	 */
 	if (unlikely(!ieee80211_vif_is_mesh(&sdata->vif) &&
 				sta && !authorized &&
-		     	(cpu_to_be16(ethertype) != sdata->control_port_protocol ||
+		     	(ethertype != sdata->control_port_protocol ||
 		      atbm_compare_ether_addr(sdata->vif.addr, skb->data + ETH_ALEN)))) {
 #ifdef CONFIG_MAC80211_ATBM_VERBOSE_DEBUG
 		if (net_ratelimit())
@@ -1097,7 +1102,7 @@ static netdev_tx_t _ieee80211_subif_start_xmit(struct sk_buff *skb,
 #endif
 
 		I802_DEBUG_INC(local->tx_handlers_drop_unauth_port);
-		atbm_printk_err("drop unauthorized port[%x][%x][%pM][%pM]\n", cpu_to_be16(ethertype),
+		atbm_printk_err("drop unauthorized port[%x][%x][%pM][%pM]\n", ethertype,
 			sdata->control_port_protocol, sdata->vif.addr, skb->data + ETH_ALEN);
 		ret = NETDEV_TX_OK;
 		goto fail;

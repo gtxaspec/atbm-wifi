@@ -16,12 +16,13 @@ PWD:=$(shell pwd)
 WIFI_INSTALL_DIR := $(PWD)/driver_install/
 
 k-dir:=$(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
-NOSTDINC_FLAGS := -I$(k-dir)/include/ \
-	-include $(k-dir)/include/linux/compat-2.6.h \
-	-DCOMPAT_STATIC 
+# Use the driver source tree for compat/backport headers when building out-of-tree
+NOSTDINC_FLAGS := -I$(PWD)/include/ \
+	-include $(PWD)/include/linux/compat-2.6.h \
+	-DCOMPAT_STATIC
 ifeq ($(CONFIG_CPTCFG_CFG80211),y)
-NOSTDINC_FLAGS +=	-I$(k-dir)/include/backport-include \
-	-I$(k-dir)/include/uapi 
+NOSTDINC_FLAGS +=	-I$(PWD)/include/backport-include \
+	-I$(PWD)/include/uapi
 endif
 #####################################################
 export
@@ -160,8 +161,11 @@ get_ver:
 	@cat hal_apollo/svn_version.h | awk '{print $3}'
 	@echo "**************************************"
 modules:clean
-	@echo "arch=$(ARCH)"						
-	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) ATBM_SYSTEM=$(SYS) -C $(KDIR) M=$(shell pwd)  modules -j8
+	@echo "arch=$(ARCH)"
+	@echo "Building wireless module..."
+	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) ATBM_SYSTEM=$(SYS) -C $(KDIR) M=$(shell pwd)/wireless modules
+	@echo "Building hal_apollo module..."
+	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) ATBM_SYSTEM=$(SYS) -C $(KDIR) M=$(shell pwd)/hal_apollo modules
 #	$(MAKE) -C $(KDIR) M=$(PWD) modules
 	
 strip:

@@ -13,9 +13,19 @@
 #include <linux/export.h>
 #include <linux/errno.h>
 #include <linux/types.h>
+#include <linux/version.h>
 #include <net/genetlink.h>
 #include <net/netlink.h>
 #include <net/sock.h>
+
+/* Define version check macros for kernel 4.4 compatibility */
+#ifndef LINUX_VERSION_IS_LESS
+#define LINUX_VERSION_IS_LESS(x1,x2,x3)	(LINUX_VERSION_CODE < KERNEL_VERSION(x1,x2,x3))
+#endif
+#ifndef LINUX_VERSION_IS_GEQ
+#define LINUX_VERSION_IS_GEQ(x1,x2,x3)	(LINUX_VERSION_CODE >= KERNEL_VERSION(x1,x2,x3))
+#endif
+
 #if LINUX_VERSION_IS_LESS(5,3,18)
 
 static const struct genl_family *find_family_real_ops(__genl_const struct genl_ops **ops)

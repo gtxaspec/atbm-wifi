@@ -17,6 +17,7 @@
 #include <net/genetlink.h>
 #include <net/cfg80211.h>
 #include "reg.h"
+#include "compat-4.4.h"
 
 
 #define WIPHY_IDX_INVALID	-1
@@ -183,23 +184,27 @@ static inline struct cfg80211_internal_bss *bss_from_pub(struct cfg80211_bss *pu
 static inline void cfg80211_hold_bss(struct cfg80211_internal_bss *bss)
 {
 	atomic_inc(&bss->hold);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
 	if (bss->pub.transmitted_bss) {
 		bss = container_of(bss->pub.transmitted_bss,
 				   struct cfg80211_internal_bss, pub);
 		atomic_inc(&bss->hold);
 	}
+#endif
 }
 
 static inline void cfg80211_unhold_bss(struct cfg80211_internal_bss *bss)
 {
 	int r = atomic_dec_return(&bss->hold);
 	WARN_ON(r < 0);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
 	if (bss->pub.transmitted_bss) {
 		bss = container_of(bss->pub.transmitted_bss,
 				   struct cfg80211_internal_bss, pub);
 		r = atomic_dec_return(&bss->hold);
 		WARN_ON(r < 0);
 	}
+#endif
 }
 
 

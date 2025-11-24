@@ -17,23 +17,19 @@
 
 
 #if (ATBM_WIFI_PLATFORM == PLATFORM_INGENICT31)
-
 #define PLATFORMINF	"ingenict31"
 extern int jzmmc_manual_detect(int index, int on);
-static int WL_REG_EN = 32+25;
-//extern	int	gpio_request(SDIO_WIFI_POWER, "sdio_wifi_power_on");
-//extern	int	gpio_direction_output(WL_REG_EN, 0);
-//extern	int	gpio_direction_output(WL_REG_EN, 1);
+static int WL_REG_EN = 57;  /* Default GPIO 57 for T31, can be overridden via module parameter */
+module_param(WL_REG_EN, int, 0644);
+MODULE_PARM_DESC(WL_REG_EN, "WiFi enable GPIO number");
 #endif
 
 #if (ATBM_WIFI_PLATFORM == PLATFORM_INGENICT41)
-
 #define PLATFORMINF	"ingenict41"
 extern int jzmmc_manual_detect(int index, int on);
-static int WL_REG_EN = 32+25;
-//extern	int	gpio_request(SDIO_WIFI_POWER, "sdio_wifi_power_on");
-//extern	int	gpio_direction_output(WL_REG_EN, 0);
-//extern	int	gpio_direction_output(WL_REG_EN, 1);
+static int WL_REG_EN = 78;  /* Default GPIO 78 for T41 (Wyze Cam v4), can be overridden via module parameter */
+module_param(WL_REG_EN, int, 0644);
+MODULE_PARM_DESC(WL_REG_EN, "WiFi enable GPIO number");
 #endif
 
 
@@ -185,18 +181,8 @@ static int atbm_platform_power_ctrl(const struct atbm_platform_data *pdata,bool 
 	
 #if (ATBM_WIFI_PLATFORM == PLATFORM_INGENICT41)
 		{
-			if(enabled){
-				atbm_printk_platform("[%s] reset altobeam wifi !\n",__func__);
-				
-				gpio_request(WL_REG_EN, "sdio_wifi_power_on");
-			
-				atbm_printk_platform("PLATFORM_INGENICT41 SDIO WIFI_RESET 0 \n");
-				gpio_direction_output(WL_REG_EN, 0);
-				msleep(300);
-				atbm_printk_platform("PLATFORM_INGENICT41 SDIO WIFI_RESET 1 \n");
-				gpio_direction_output(WL_REG_EN, 1);
-				msleep(100);
-			}
+			/* T41: Power control is handled by mmc-pwrseq in device tree, skip GPIO control here */
+			atbm_printk_platform("PLATFORM_INGENICT41: Power control handled by mmc-pwrseq\n");
 		}
 #endif
 
@@ -491,17 +477,13 @@ struct atbm_platform_data platform_data = {
 	.insert_ctrl  = atbm_insert_crtl,
 #if(ATBM_WIFI_PLATFORM == PLATFORM_INGENICT31)
 			.power_ctrl = NULL,
-			//.irq_gpio = EXYNOS4_GPX2(4),
-			//.power_gpio	= EXYNOS4_GPC1(1),
-				.irq_gpio	= 60,
-			.power_gpio = GPIO_PC(12), 
+			.irq_gpio	= -1,
+			.power_gpio = 57,  /* WiFi enable GPIO for Ingenic T31 */
 #endif
 #if(ATBM_WIFI_PLATFORM == PLATFORM_INGENICT41)
 		.power_ctrl = NULL,
-		//.irq_gpio = EXYNOS4_GPX2(4),
-		//.power_gpio	= EXYNOS4_GPC1(1),
-			.irq_gpio	= 60,
-		.power_gpio = GPIO_PC(12), 
+		.irq_gpio	= -1,
+		.power_gpio = 57,  /* WiFi enable GPIO for Ingenic T41 (Wyze Cam v4) */
 #endif
 
 #if(ATBM_WIFI_PLATFORM == PLATFORM_XUNWEI)
@@ -530,7 +512,6 @@ struct atbm_platform_data platform_data = {
 struct atbm_platform_data *atbm_get_platform_data(void)
 {
 	return &platform_data;
-
 }
 
 

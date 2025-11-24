@@ -1105,6 +1105,8 @@ size_t cfg80211_merge_profile(const u8 *ie, size_t ielen,
 
 	return copied_len;
 }
+EXPORT_SYMBOL(cfg80211_merge_profile);
+
 static inline const u8 *
 cfg80211_find_ie_match(u8 eid, const u8 *ies, unsigned int len,
 		       const u8 *match, unsigned int match_len,

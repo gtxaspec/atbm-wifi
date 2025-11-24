@@ -1,11 +1,3 @@
-# Implement multi_depend function for kernel 4.4 compatibility
-# Kernel 4.4 references multi_depend but doesn't define it (added in later kernels)
-define multi_depend_tmpl
-$$(obj)/$(1): $$(addprefix $$(obj)/,$$(foreach s,$(3),$$($(1:.o=)$$(s))))
-endef
-
-multi_depend = $(foreach m,$(1),$(eval $(call multi_depend_tmpl,$(m),$(2),$(3))))
-
 #CONFIG_TX_NO_CONFIRM
 #CONFIG_USB_AGGR_URB_TX
 #CONFIG_TX_NO_CONFIRM
@@ -25,10 +17,21 @@ multi_depend = $(foreach m,$(1),$(eval $(call multi_depend_tmpl,$(m),$(2),$(3)))
 #ccflags-y += -DCONFIG_ATBM_APOLLO_5GHZ_SUPPORT
 #ccflags-y += -DCONFIG_ATBM_APOLLO_WAPI_SUPPORT
 #ccflags-y  += -I$(shell pwd)/../include/ \
-        -include $(shell pwd)/../include/linux/compat-2.6.h \
-        -DCOMPAT_STATIC
+#        -include $(shell pwd)/../include/linux/compat-2.6.h \
+#        -DCOMPAT_STATIC
 
-ATBM_BUILD_TIME = $(shell date "+%Y-%m-%d_%H:%M:%S")
+# Include paths for atbm headers
+ccflags-y += -I$(src)/../include
+
+# Include compat headers for version macros and kernel 4.4 compatibility
+ccflags-y += -include $(src)/../include/linux/compat-2.6.h
+ccflags-y += -include $(src)/../wireless/compat-4.4.h
+ccflags-y += -DCOMPAT_STATIC
+
+# Define COMPAT44_EXPORTS_BUILD for compat44_exports.c to prevent duplicate definitions
+CFLAGS_compat44_exports.o += -DCOMPAT44_EXPORTS_BUILD
+
+ATBM_BUILD_TIME = $(shell date "+%Y-%m-%d_%H-%M-%S")
 ccflags-y += -DCONFIG_ATBM_BUILD_TIME=\"$(ATBM_BUILD_TIME)\"
 ##指定配置文件路径，当配置文件存在时使用配置文件中的dcxo值不使用efuse中的dcxo，配置文件中的delta_gain为修正值，如果文件不存在则直接使用efuse中的数据
 
@@ -37,13 +40,14 @@ ATBM_CONFIG_FILE="/tmp/atbm_txpwer_dcxo_cfg.txt"
 ATBM_RATE_POWER_CONFIG_FILE="/tmp/set_rate_power.txt"
 
 # Use default value if CONFIG_ATBM_CONFIG_FILE is not set
-ifndef CONFIG_ATBM_CONFIG_FILE
-    CONFIG_ATBM_CONFIG_FILE := $(ATBM_CONFIG_FILE)
+# Avoid ?= operator due to GNU Make 4.4 compatibility issues
+ifeq ($(CONFIG_ATBM_CONFIG_FILE),)
+CONFIG_ATBM_CONFIG_FILE = $(ATBM_CONFIG_FILE)
 endif
 
 # Use default value if CONFIG_ATBM_RATE_POWER_CONFIG_FILE is not set
-ifndef CONFIG_ATBM_RATE_POWER_CONFIG_FILE
-    CONFIG_ATBM_RATE_POWER_CONFIG_FILE := $(ATBM_RATE_POWER_CONFIG_FILE)
+ifeq ($(CONFIG_ATBM_RATE_POWER_CONFIG_FILE),)
+CONFIG_ATBM_RATE_POWER_CONFIG_FILE = $(ATBM_RATE_POWER_CONFIG_FILE)
 endif
 
 ccflags-y += -DCONFIG_TXPOWER_DCXO_VALUE=\"$(CONFIG_ATBM_CONFIG_FILE)\"
@@ -86,7 +90,9 @@ ifneq ($(MODPMSTAYAWK),)
 ccflags-y += -DCONFIG_MODPMSTAYAWK=\"$(PLFDEVNAME)\"
 endif
 
-ATBM_MODULES_NAME ?= $(MODULES_NAME)
+ifeq ($(ATBM_MODULES_NAME),)
+ATBM_MODULES_NAME = $(MODULES_NAME)
+endif
 ifneq ($(FW),)
 ccflags-y += -DCONFIG_FW_NAME=\"$(FW)\"
 endif
@@ -536,6 +542,7 @@ endif
 ccflags-$(BLUEDROID) += -DBLUEDROID
 ccflags-$(BLE) += -DCONFIG_ATBM_BLE_CDEV
 $(ATBM_MODULES_NAME)-y := \
+        compat44_exports.o \
         mac80211/main.o \
         mac80211/status.o \
         mac80211/sta_info.o \
@@ -627,9 +634,6 @@ $(ATBM_MODULES_NAME)-$(CONFIG_PM)  += pm.o
 
 
 obj-$(CONFIG_ATBM_APOLLO_WIFI6) += $(ATBM_MODULES_NAME).o
-
-# Call multi_depend to set up dependencies for kernel 4.4
-$(call multi_depend, $(ATBM_MODULES_NAME).o, .o, -y)
 
 ccflags-y += -D__CHECK_ENDIAN__
 MODFLAGS =-DMODULE -fno-pic

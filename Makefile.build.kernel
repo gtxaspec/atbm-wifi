@@ -4,13 +4,14 @@
 -include $(PWD)/.config
 
 k-dir:=$(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
-NOSTDINC_FLAGS := -I$(k-dir)/include/ \
-	-include $(k-dir)/include/linux/compat-2.6.h \
-	-DCOMPAT_STATIC 
-	
+# Use the driver source tree for compat/backport headers when building out-of-tree
+NOSTDINC_FLAGS := -I$(PWD)/include/ \
+	-include $(PWD)/include/linux/compat-2.6.h \
+	-DCOMPAT_STATIC
+
 ifeq ($(CONFIG_CPTCFG_CFG80211),y)
-NOSTDINC_FLAGS +=	-I$(k-dir)/include/backport-include \
-	-I$(k-dir)/include/uapi 
+NOSTDINC_FLAGS +=	-I$(PWD)/include/backport-include \
+	-I$(PWD)/include/uapi
 endif
 
 KBUILD_CFLAGS += -Wno-error \
@@ -124,7 +125,7 @@ endif
 #ifneq ($(BLEMODULE),)
 #obj-$(BLEMODULE) += ble_host/
 #endif
-ifneq ($(CONFIG_CPTCFG_CFG80211),) 
+ifneq ($(CONFIG_CPTCFG_CFG80211),)
 obj-$(CONFIG_CPTCFG_CFG80211) += wireless/
 CPTCFG_CFG80211=m
 endif
