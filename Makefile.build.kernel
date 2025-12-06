@@ -125,10 +125,11 @@ endif
 #ifneq ($(BLEMODULE),)
 #obj-$(BLEMODULE) += ble_host/
 #endif
-ifneq ($(CONFIG_CPTCFG_CFG80211),)
-obj-$(CONFIG_CPTCFG_CFG80211) += wireless/
-CPTCFG_CFG80211=m
-endif
+# wireless/ directory removed - using kernel's cfg80211 instead
+#ifneq ($(CONFIG_CPTCFG_CFG80211),)
+#obj-$(CONFIG_CPTCFG_CFG80211) += wireless/
+#CPTCFG_CFG80211=m
+#endif
 
 ifeq ($(CONFIG_ATBM_APOLLO_WIFI6),)
 CONFIG_ATBM_APOLLO_WIFI6=m

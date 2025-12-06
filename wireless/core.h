@@ -17,7 +17,8 @@
 #include <net/genetlink.h>
 #include <net/cfg80211.h>
 #include "reg.h"
-#include "compat-4.4.h"
+/* compat-4.4.h disabled - driver's own headers provide all needed APIs */
+/* #include "compat-4.4.h" */
 
 
 #define WIPHY_IDX_INVALID	-1

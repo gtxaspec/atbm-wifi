@@ -25,11 +25,12 @@ ccflags-y += -I$(src)/../include
 
 # Include compat headers for version macros and kernel 4.4 compatibility
 ccflags-y += -include $(src)/../include/linux/compat-2.6.h
-ccflags-y += -include $(src)/../wireless/compat-4.4.h
+# compat-4.4.h disabled - thingino kernel already provides these APIs
+# ccflags-y += -include $(src)/../wireless/compat-4.4.h
 ccflags-y += -DCOMPAT_STATIC
 
-# Define COMPAT44_EXPORTS_BUILD for compat44_exports.c to prevent duplicate definitions
-CFLAGS_compat44_exports.o += -DCOMPAT44_EXPORTS_BUILD
+# compat44_exports.c disabled - thingino kernel already provides these APIs
+# CFLAGS_compat44_exports.o += -DCOMPAT44_EXPORTS_BUILD
 
 ATBM_BUILD_TIME = $(shell date "+%Y-%m-%d_%H-%M-%S")
 ccflags-y += -DCONFIG_ATBM_BUILD_TIME=\"$(ATBM_BUILD_TIME)\"
@@ -542,7 +543,6 @@ endif
 ccflags-$(BLUEDROID) += -DBLUEDROID
 ccflags-$(BLE) += -DCONFIG_ATBM_BLE_CDEV
 $(ATBM_MODULES_NAME)-y := \
-        compat44_exports.o \
         mac80211/main.o \
         mac80211/status.o \
         mac80211/sta_info.o \

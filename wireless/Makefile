@@ -22,10 +22,12 @@ obj-$(CPTCFG_LIB80211_CRYPT_WEP) += lib80211_crypt_wep.o
 obj-$(CPTCFG_LIB80211_CRYPT_CCMP) += lib80211_crypt_ccmp.o
 obj-$(CPTCFG_LIB80211_CRYPT_TKIP) += lib80211_crypt_tkip.o
 
-obj-$(CONFIG_WEXT_CORE) += wext-core.o
-obj-$(CONFIG_WEXT_PROC) += wext-proc.o
-obj-$(CONFIG_WEXT_SPY) += wext-spy.o
-obj-$(CONFIG_WEXT_PRIV) += wext-priv.o
+# WEXT support disabled - kernel provides wireless_send_event and wireless_nlevent_flush
+# The driver's wext-*.c files are incompatible with kernel 4.4
+# obj-$(CONFIG_WEXT_CORE) += wext-core.o
+# obj-$(CONFIG_WEXT_PROC) += wext-proc.o
+# obj-$(CONFIG_WEXT_SPY) += wext-spy.o
+# obj-$(CONFIG_WEXT_PRIV) += wext-priv.o
 
 cfg80211-y += core.o sysfs.o radiotap.o util.o reg.o scan.o nl80211.o
 cfg80211-y += mlme.o ibss.o sme.o chan.o ethtool.o mesh.o ap.o trace.o ocb.o

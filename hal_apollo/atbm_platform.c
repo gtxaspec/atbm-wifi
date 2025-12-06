@@ -273,8 +273,8 @@ static int atbm_platform_insert_crtl(const struct atbm_platform_data *pdata,bool
 	
 		}
 #endif
-	
-	
+
+
 #if (ATBM_WIFI_PLATFORM == PLATFORM_INGENICT41)
 			{
 		
