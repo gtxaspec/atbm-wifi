@@ -2,17 +2,27 @@
 #CONFIG_USB_AGGR_URB_TX
 #CONFIG_TX_NO_CONFIRM
 #
-# ��������ѡ��ͬ��ģʽ��CONFIG_USB_AGGR_URB_TX ������ʱһ����Ҫ����CONFIG_USE_DMA_ADDR_BUFFER
-# 1> CONFIG_USB_AGGR_URB_TX + CONFIG_TX_NO_CONFIRM��ÿ��urb ���Ͷ��txframe ���Ҳ���Ҫconfirm����Ҫ��lmac��NO_NEED_CONFIRM �꣬����ratecontrol��lmac ʵ��
-# 2> CONFIG_USB_AGGR_URB_TX ÿ��urb ���Ͷ��txframe ������Ҫconfirm����Ҫ�ر�lmac��NO_NEED_CONFIRM ��
-# 3> ���к궼�����壬ÿ��urb ����һ��txframe ������Ҫconfirm������urbֱ��ʹ��skbbuffer����Ҫ�ر�lmac��NO_NEED_CONFIRM ��
-# 4> ����CONFIG_USE_DMA_ADDR_BUFFER��ÿ��urb ����һ��txframe ������Ҫconfirm������urbֱ��DMAbuffer����Ҫ�����ݴ�skb copy��DMAbuffer����Ҫ�ر�lmac��NO_NEED_CONFIRM �꣬
-# 5> ����CONFIG_USE_DMA_ADDR_BUFFER+ CONFIG_TX_NO_CONFIRM��ÿ��urb ����һ��txframe ���Ҳ���Ҫconfirm������urbֱ��DMAbuffer����Ҫ�����ݴ�skb copy��DMAbuffer����Ҫ��lmac��NO_NEED_CONFIRM �꣬����ratecontrol��lmac ʵ��
-# 6> ����CONFIG_TX_NO_CONFIRM��ÿ��urb ����һ��txframe ���Ҳ���Ҫconfirm������urbֱ��ʹ��skbbuffer����Ҫ��lmac��NO_NEED_CONFIRM �꣬����ratecontrol��lmac ʵ��
+# USB TX mode selection notes.
+# If CONFIG_USB_AGGR_URB_TX is enabled, also enable CONFIG_USE_DMA_ADDR_BUFFER.
+# 1) CONFIG_USB_AGGR_URB_TX + CONFIG_TX_NO_CONFIRM:
+#    One URB carries multiple tx frames, no confirm required. Needs LMAC NO_NEED_CONFIRM,
+#    with rate control handled in LMAC.
+# 2) CONFIG_USB_AGGR_URB_TX only:
+#    One URB carries multiple tx frames, confirm required. Disable LMAC NO_NEED_CONFIRM.
+# 3) Neither option enabled (default mode):
+#    One URB carries one tx frame, confirm required, URB uses skb buffer directly.
+# 4) CONFIG_USE_DMA_ADDR_BUFFER only:
+#    One URB carries one tx frame, confirm required, URB uses DMA buffer and copies from skb.
+# 5) CONFIG_USE_DMA_ADDR_BUFFER + CONFIG_TX_NO_CONFIRM:
+#    One URB carries one tx frame, no confirm required, URB uses DMA buffer,
+#    with rate control handled in LMAC.
+# 6) CONFIG_TX_NO_CONFIRM only:
+#    One URB carries one tx frame, no confirm required, URB uses skb buffer directly,
+#    with rate control handled in LMAC.
 #
-##���ڵ�����+cpuǿ�İ���ʹ�� ģʽ1 ���� ģʽ2
-##���ڵ��ȿ�+cpu���İ���ʹ�� ģʽ3 ���� ģʽ6
-## Ĭ��ʹ��ģʽ 3
+## For high throughput and stronger CPU platforms, prefer mode 1 or mode 2.
+## For lower throughput and weaker CPU platforms, prefer mode 3 or mode 6.
+## Default mode: 3.
 #####################################################################################################################################################################################################################
 
 ifneq ($(ATBM_BUILD_IN_KERNEL),y)
@@ -31,7 +41,7 @@ NOSTDINC_FLAGS := -I$(k-dir)/../include/ \
 #####
 KBUILD_CFLAGS += -Wno-error \
 	-Wno-error=vla \
-	-Wno-error=unused-function 
+	-Wno-error=unused-function
 
 #export
 ifeq ($(CONFIG_ATBM_MODULE_NAME),)
@@ -146,7 +156,7 @@ endif
 endif
 MULT_NAME=y
 
-#export 
+#export
 ifeq ($(CONFIG_ATBM_APOLLO),)
 CONFIG_ATBM_APOLLO=m
 endif
@@ -172,11 +182,12 @@ endif
 
 #ccflags-y += -DCONFIG_ATBM_APOLLO_5GHZ_SUPPORT
 #ccflags-y += -DCONFIG_ATBM_APOLLO_WAPI_SUPPORT
-#ccflags-y  += -I$(shell pwd)/../include/ \
-        -include $(shell pwd)/../include/linux/compat-2.6.h \
+ccflags-y += -I$(k-dir)/../include/ \
+        -include $(k-dir)/../include/linux/compat-2.6.h \
         -DCOMPAT_STATIC
-##ָ�������ļ�·�����������ļ�����ʱʹ�������ļ��е�dcxoֵ��ʹ��efuse�е�dcxo�������ļ��е�delta_gainΪ����ֵ������ļ���������ֱ��ʹ��efuse�е�����
-ATBM_BUILD_TIME = $(shell date "+%Y-%m-%d_%H:%M:%S")
+## Set the calibration file path. If the file is valid, use its DCXO value;
+## otherwise use the DCXO/eFuse values directly.
+ATBM_BUILD_TIME = $(shell date "+%Y-%m-%d_%H-%M-%S")
 ccflags-y += -DCONFIG_ATBM_BUILD_TIME=\"$(ATBM_BUILD_TIME)\"
 
 # Default values
@@ -263,7 +274,7 @@ ccflags-y += -DATBM_VIF_LIST_USE_RCU_LOCK
 ccflags-y += -DCONFIG_ATBM_ETF_OLD
 ccflags-y += -DCONFIG_ATBM_SUPPORT_REKEY
 
-#ccflags-y += -DATBM_SUPPORT_SMARTCONFIG 
+#ccflags-y += -DATBM_SUPPORT_SMARTCONFIG
 #ccflags-y += -DIEEE80211_TASKLET
 #ccflags-y += -DCONFIG_RATE_HW_CONTROL
 ccflags-y += -DCONFIG_ATBM_SUPPORT_SG
@@ -345,8 +356,8 @@ ccflags-$(MONHDRPRISM) += -DCONFIG_ATBM_MONITOR_HDR_PRISM
 ###################################################################
 ccflags-$(DRVLOADERFAST) += -DCONDIF_ATBM_CTRL_REQUEST_ASYNC
 ###################################################################
-#private protocl 
-################################################################### 
+#private protocl
+###################################################################
 ccflags-$(PRI_IE) += -DATBM_PRIVATE_IE
 #ifneq ($(PRI_IE),y)
 ccflags-y += -DCONFIG_ATBM_STA_LISTEN
@@ -394,13 +405,13 @@ ccflags-$(MONITOR) += -DATBM_SUPPORT_PKG_MONITOR
 ####################################################################
 ccflags-$(BRIDGE) += -DCONFIG_MAC80211_BRIDGE
 ####################################################################
-#CONFIG_TX_NO_CONFIRM      
+#CONFIG_TX_NO_CONFIRM
 #enable tx noconfirm
 ####################################################################
 ccflags-$(NOTXCONFIRM) += -DCONFIG_TX_NO_CONFIRM
 ####################################################################
 #CONFIG_USB_AGGR_URB_TX
-#enable usb aggr tx 
+#enable usb aggr tx
 ####################################################################
 ccflags-$(USBAGGTX) += -DCONFIG_USB_AGGR_URB_TX
 ####################################################################
@@ -454,7 +465,7 @@ ccflags-$(MODULEFS) += -DCONFIG_ATBM_MOULE_FS
 #CONFIG_ATBM_DEV_IOCTL
 #enabel dev ioctl
 ####################################################################
-ccflags-$(DEVCTRL) += -DCONFIG_ATBM_DEV_IOCTL 
+ccflags-$(DEVCTRL) += -DCONFIG_ATBM_DEV_IOCTL
 ####################################################################
 #ATBM_SUPPORT_SMARTCONFIG
 #enabel smart config
@@ -690,7 +701,7 @@ ifeq ($(SPI_BUS),y)
 ccflags-y += -DSPI_BUS
 endif
 #ccflags-y += -DPS_SETUP
-MODFLAGS =-DMODULE -fno-pic 
+MODFLAGS =-DMODULE -fno-pic
 CFLAGS_MODULE =$(MODFLAGS)
 
 ifeq ($(CONFIG_ATBM_APOLLO_DEBUGFS),y)
