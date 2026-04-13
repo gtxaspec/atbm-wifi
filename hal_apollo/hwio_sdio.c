@@ -286,7 +286,7 @@ int atbm_data_read_unlock(struct atbm_common *hw_priv, void *buf, u32 buf_len)
 			break;
 		} else {
 			retry++;
-			mdelay(1000);
+			mdelay(10);
 			atbm_dbg(ATBM_APOLLO_DBG_ERROR, "%s,error :[%d]\n",
 					__func__, ret);
 		}
@@ -360,7 +360,7 @@ int atbm_data_write_unlock(struct atbm_common *hw_priv, const void *buf,
 			break;
 		} else {
 			retry++;
-			mdelay(1000);
+			mdelay(10);
 			atbm_dbg(ATBM_APOLLO_DBG_ERROR, "%s,%d,error :[%d]\n",
 					__func__, __LINE__, ret);
 		}
