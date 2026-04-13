@@ -37,7 +37,7 @@ CUSTOMER_SUPPORT_USED=y
 #PLATFORM_SUN50IWP1						26
 #PLATFORM_KALI                                  27
 export
-platform ?=PLATFORM_SUN50IWP1
+platform ?=PLATFORM_INGENICT41
 #Android
 #Linux
 sys ?= Android
