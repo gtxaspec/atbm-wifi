@@ -6024,7 +6024,7 @@ exit:
 }
 
 //SRRC 认证 11b 10dBm || 3dBm
-#include <math.h>
+/* math.h not available in kernel space */
 void CertificationRegisterConfig_SRRC(bool bCf, int ofdm_mode, int precom)
 {
 	u32 digitalgain = 0;

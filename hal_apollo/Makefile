@@ -525,6 +525,9 @@ ccflags-y += -DCONFIG_MAC80211_ATBM_ROAMING_CHANGES
 ifeq ($(CONFIG_MAC80211_ATBM_DEBUGFS),y)
 ccflags-y  += -DCONFIG_MAC80211_ATBM_DEBUGFS
 endif
+ccflags-y += -I$(src)/../include
+ccflags-y += -include $(src)/../include/linux/compat-2.6.h
+ccflags-y += -DCOMPAT_STATIC
 ccflags-$(BLUEDROID) += -DBLUEDROID
 ccflags-$(BLE) += -DCONFIG_ATBM_BLE_CDEV
 $(ATBM_MODULES_NAME)-y := \

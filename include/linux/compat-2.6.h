@@ -88,14 +88,11 @@ typedef struct {
 
 #if CONFIG_CPTCFG_CFG80211
 #include "backport/backport.h"
-#else //CONFIG_CPTCFG_CFG80211
-//#define __ASSEMBLY__
-
+#else
 #ifndef __ASSEMBLY__
 #define LINUX_BACKPORT(__sym) backport_ ##__sym
-#endif //__ASSEMBLY__
-
-#endif  //CONFIG_CPTCFG_CFG80211
+#endif
+#endif
 /*
  * Each compat file represents compatibility code for new kernel
  * code introduced for *that* kernel revision.
@@ -127,4 +124,13 @@ typedef struct {
 #include <linux/compat-3.5.h>
 #include <linux/compat-3.8.h>
 #include <linux/compat-3.10.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 13, 0)
+static inline void *skb_put_zero(struct sk_buff *skb, unsigned int len)
+{
+	void *tmp = skb_put(skb, len);
+	memset(tmp, 0, len);
+	return tmp;
+}
+#endif
+
 #endif /* LINUX_26_COMPAT_H */
