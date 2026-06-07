@@ -39,6 +39,10 @@ static inline void *skb_put_zero(struct sk_buff *skb, unsigned int len)
 
 	return tmp;
 }
+/* Tell compat-2.6.h its own skb_put_zero shim is redundant: this backport
+ * header is active (e.g. the 3.10 build path). On the 4.4 path this header is
+ * not pulled in, so compat-2.6.h still provides skb_put_zero. */
+#define HAVE_BACKPORT_SKB_PUT_ZERO 1
 
 static inline void *skb_put_data(struct sk_buff *skb, const void *data,
 				 unsigned int len)

@@ -124,7 +124,7 @@ typedef struct {
 #include <linux/compat-3.5.h>
 #include <linux/compat-3.8.h>
 #include <linux/compat-3.10.h>
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 13, 0)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 13, 0)) && !defined(HAVE_BACKPORT_SKB_PUT_ZERO)
 static inline void *skb_put_zero(struct sk_buff *skb, unsigned int len)
 {
 	void *tmp = skb_put(skb, len);
