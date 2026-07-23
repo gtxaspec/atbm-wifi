@@ -1258,9 +1258,20 @@ static int atbm_ble_platform_remove(struct platform_device *pdev)
 	return 0;
 }
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0))
+/* порт на 6.18: platform_driver.remove теперь возвращает void */
+static void atbm_ble_platform_remove_void(struct platform_device *pdev)
+{
+	atbm_ble_platform_remove(pdev);
+}
+#define ATBM_BLE_REMOVE	atbm_ble_platform_remove_void
+#else
+#define ATBM_BLE_REMOVE	atbm_ble_platform_remove
+#endif
+
 static struct platform_driver atbm_ble_platform_driver = {
 	.probe = atbm_ble_platform_probe,
-	.remove = atbm_ble_platform_remove,
+	.remove = ATBM_BLE_REMOVE,
 	.driver = {
 		.name = "atbm_ble",
 	},
@@ -1473,7 +1484,12 @@ int  ieee80211_ble_platform_init(void)
 		goto error_region;
 	}
 	
+	#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0))
+	/* порт на 6.18: class_create больше не принимает владельца-модуль */
+	ble_class = class_create("atbm_ioctl_class");
+#else
 	ble_class = class_create(THIS_MODULE, "atbm_ioctl_class");
+#endif
 
 	if(ble_class == NULL){
 		ret = -1;
