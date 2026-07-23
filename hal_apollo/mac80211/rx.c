@@ -9,6 +9,11 @@
  * published by the Free Software Foundation.
  */
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+#define ATBM_SPURIOUS_LINK_ID	-1,   /* порт на 6.18: link_id, связь без MLO */
+#else
+#define ATBM_SPURIOUS_LINK_ID
+#endif
 #include <linux/jiffies.h>
 #include <linux/slab.h>
 #include <linux/kernel.h>
@@ -1050,7 +1055,7 @@ ieee80211_rx_h_check(struct ieee80211_rx_data *rx)
 	if((status->flag & RX_FLAG_UNKOWN_STA_FRAME)&&(rx->sdata->vif.type == NL80211_IFTYPE_AP)){
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 3, 0))
 		if(rx->sdata->vif.type == NL80211_IFTYPE_AP){
-	    	if(cfg80211_rx_spurious_frame(rx->sdata->dev,hdr->addr2,GFP_ATOMIC)==true)
+	    	if(cfg80211_rx_spurious_frame(rx->sdata->dev,hdr->addr2,ATBM_SPURIOUS_LINK_ID GFP_ATOMIC)==true)
 				return RX_DROP_UNUSABLE;
 		}
 #endif
@@ -1079,7 +1084,7 @@ ieee80211_rx_h_check(struct ieee80211_rx_data *rx)
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 3, 0))
 			if(rx->sdata->vif.type == NL80211_IFTYPE_AP){
-		    	if(cfg80211_rx_spurious_frame(rx->sdata->dev,hdr->addr2,GFP_ATOMIC)==true)
+		    	if(cfg80211_rx_spurious_frame(rx->sdata->dev,hdr->addr2,ATBM_SPURIOUS_LINK_ID GFP_ATOMIC)==true)
 					return RX_DROP_UNUSABLE;
 			}
 #endif
