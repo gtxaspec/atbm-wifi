@@ -11,7 +11,7 @@
 #include <linux/types.h>
 #include <linux/netdevice.h>
 #include <linux/export.h>
-#include <asm/unaligned.h>
+#include <linux/unaligned.h>
 
 #include <net/atbm_mac80211.h>
 #include "driver-ops.h"

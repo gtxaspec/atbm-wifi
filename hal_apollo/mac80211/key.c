@@ -24,7 +24,7 @@
 #include "aes_cmac.h"
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,29))
-#include <asm/unaligned.h>
+#include <linux/unaligned.h>
 #endif
 
 /**

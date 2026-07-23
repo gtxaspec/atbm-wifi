@@ -25,7 +25,7 @@
 #include <linux/slab.h>
 #include <linux/export.h>
 #include <net/atbm_mac80211.h>
-#include <asm/unaligned.h>
+#include <linux/unaligned.h>
 #include <net/sch_generic.h>
 #include <linux/kthread.h>
 
