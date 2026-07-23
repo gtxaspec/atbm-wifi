@@ -4842,6 +4842,12 @@ ieee80211_vif_type_p2p(struct ieee80211_vif *vif)
 {
 	return ieee80211_iftype_p2p(vif->type, vif->p2p);
 }
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 7, 0))
+/* порт на 6.18: wdev->mtx удалён, сериализация — на wiphy-замке, который ядро
+ * уже держит на путях входа. См. комментарий в port_atbm_618.py. */
+static inline void atbm_wdev_lock(struct wireless_dev *wdev) { }
+static inline void atbm_wdev_unlock(struct wireless_dev *wdev) { }
+#else
 static inline void atbm_wdev_lock(struct wireless_dev *wdev)
 	__acquires(wdev)
 {
@@ -4855,6 +4861,7 @@ static inline void atbm_wdev_unlock(struct wireless_dev *wdev)
 	__release(wdev->mtx);
 	mutex_unlock(&wdev->mtx);
 }
+#endif
 #ifdef CONFIG_ATBM_MAC80211_NO_USE
 void ieee80211_enable_rssi_reports(struct ieee80211_vif *vif,
 				   int rssi_min_thold,
