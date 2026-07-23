@@ -3047,7 +3047,7 @@ static int atbm_get_prio_queue(struct atbm_vif *priv,
 
 		score = ((edca->aifns + edca->cwMin) << 16) +
 				(edca->cwMax - edca->cwMin) *
-				(prandom_u32() & 0xFFFF);
+				(get_random_u32() & 0xFFFF);
 
 		//score = ((edca->aifns) << 8) +
 		//		((1<<edca->cwMin) &random32());
