@@ -33,7 +33,7 @@ endif
 
 
 
-k-dir:=$(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
+k-dir:=$(if $(KBUILD_EXTMOD),$(KBUILD_EXTMOD)/hal_apollo,$(if $(filter /%,$(src)),$(src),$(srctree)/$(src)))
 NOSTDINC_FLAGS := -I$(k-dir)/../include/ \
         -include $(k-dir)/../include/linux/compat-2.6.h \
         -DCOMPAT_STATIC
