@@ -320,7 +320,7 @@ static int atbm_dev_set_private_mgmt_frame(struct net_device *dev, struct altm_w
 					memcpy(&ap_vendor_cfg_ie.private_ie , &private_ie,sizeof(struct atbm_vendor_cfg_ie)); 
 					
 					ap_vendor_cfg_ie.ap_sdata = sdata;
-					ieee80211_send_probe_resp_mgmt_queue(hw_priv,&ap_vendor_cfg_ie,1);
+					ieee80211_send_probe_resp_mgmt_queue(hw_priv,(char *)&ap_vendor_cfg_ie,1);
 
 					
 				
@@ -350,7 +350,7 @@ static int atbm_dev_set_private_mgmt_frame(struct net_device *dev, struct altm_w
 					memset(&customer_action_ie,0,sizeof(struct atbm_customer_action));
 					customer_action_ie.sdata = sdata;
 					customer_action_ie.action = msg->externData[1];
-					ieee80211_send_action_mgmt_queue(hw_priv,&customer_action_ie,1);					
+					ieee80211_send_action_mgmt_queue(hw_priv,(char *)&customer_action_ie,1);					
 				}
 			}break;
 		default:{
@@ -363,8 +363,7 @@ static int atbm_dev_set_private_mgmt_frame(struct net_device *dev, struct altm_w
 
 	}
 
-
-
+	return 0;   /* порт: функция объявлена int, возврата не было */
 }
 
 #endif

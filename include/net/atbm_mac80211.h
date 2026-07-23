@@ -19,7 +19,7 @@
 #include <linux/device.h>
 #include <linux/ieee80211.h>
 #include <net/cfg80211.h>
-#include <asm/unaligned.h>
+#include <linux/unaligned.h>
 #include <linux/hash.h>
 #include <linux/module.h>
 #include <net/ieee80211_radiotap.h>
@@ -4842,6 +4842,12 @@ ieee80211_vif_type_p2p(struct ieee80211_vif *vif)
 {
 	return ieee80211_iftype_p2p(vif->type, vif->p2p);
 }
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 7, 0))
+/* порт на 6.18: wdev->mtx удалён, сериализация — на wiphy-замке, который ядро
+ * уже держит на путях входа. См. комментарий в port_atbm_618.py. */
+static inline void atbm_wdev_lock(struct wireless_dev *wdev) { }
+static inline void atbm_wdev_unlock(struct wireless_dev *wdev) { }
+#else
 static inline void atbm_wdev_lock(struct wireless_dev *wdev)
 	__acquires(wdev)
 {
@@ -4855,6 +4861,7 @@ static inline void atbm_wdev_unlock(struct wireless_dev *wdev)
 	__release(wdev->mtx);
 	mutex_unlock(&wdev->mtx);
 }
+#endif
 #ifdef CONFIG_ATBM_MAC80211_NO_USE
 void ieee80211_enable_rssi_reports(struct ieee80211_vif *vif,
 				   int rssi_min_thold,
@@ -5035,6 +5042,54 @@ action_check_end:
 /*
 *atbm timer function
 */
+
+/* --- порт на 6.18 (добавлено нами) ------------------------------------------
+ * 6.15: del_timer()/del_timer_sync() -> timer_delete()/timer_delete_sync()
+ * 6.16: from_timer() -> timer_container_of()
+ */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 16, 0))
+#ifndef from_timer
+#define from_timer(var, callback_timer, timer_fieldname) \
+	timer_container_of(var, callback_timer, timer_fieldname)
+#endif
+#endif
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0))
+#ifndef del_timer_sync
+#define del_timer_sync(t)	timer_delete_sync(t)
+#endif
+#ifndef del_timer
+#define del_timer(t)	timer_delete(t)
+#endif
+#endif
+/* --- конец порта ----------------------------------------------------------- */
+
+
+/* --- порт на 6.18: переходники к структурному cfg80211 API ------------------ */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+static inline void atbm_compat_rx_assoc_resp(struct net_device *dev,
+		struct cfg80211_bss *bss, const u8 *buf, size_t len)
+{
+	struct cfg80211_rx_assoc_resp_data data = {};
+
+	data.buf = buf;
+	data.len = len;
+	data.uapsd_queues = -1;
+	data.links[0].bss = bss;      /* links[0] = связь без MLO */
+	cfg80211_rx_assoc_resp(dev, &data);
+}
+
+static inline void atbm_compat_assoc_timeout(struct net_device *dev,
+		struct cfg80211_bss *bss)
+{
+	struct cfg80211_assoc_failure data = {};
+
+	data.bss[0] = bss;
+	data.timeout = true;
+	cfg80211_assoc_failure(dev, &data);
+}
+#endif
+/* --- конец переходников ---------------------------------------------------- */
+
 struct atbm_timer_list {
 	struct timer_list timer;
 	void (*function)(unsigned long data);

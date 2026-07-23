@@ -219,6 +219,18 @@ int atbm_change_iface_to_monitor(struct net_device *dev)
 #endif
 }
 
+
+/* порт на 6.18: в station_parameters поля станции переехали в link_sta_params */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+#define ATBM_STA_RATES(p)	((p)->link_sta_params.supported_rates)
+#define ATBM_STA_RATES_LEN(p)	((p)->link_sta_params.supported_rates_len)
+#define ATBM_STA_HT_CAPA(p)	((p)->link_sta_params.ht_capa)
+#else
+#define ATBM_STA_RATES(p)	((p)->supported_rates)
+#define ATBM_STA_RATES_LEN(p)	((p)->supported_rates_len)
+#define ATBM_STA_HT_CAPA(p)	((p)->ht_capa)
+#endif
+
 static int ieee80211_add_key(struct wiphy *wiphy, struct net_device *dev,
 			     u8 key_idx, bool pairwise, const u8 *mac_addr,
 			     struct key_params *params)
@@ -1282,11 +1294,11 @@ static void sta_apply_parameters(struct ieee80211_local *local,
 	if (params->listen_interval >= 0)
 		sta->listen_interval = params->listen_interval;
 
-	if (params->supported_rates) {
+	if (ATBM_STA_RATES(params)) {
 		rates = 0;
 
-		for (i = 0; i < params->supported_rates_len; i++) {
-			int rate = (params->supported_rates[i] & 0x7f) * 5;
+		for (i = 0; i < ATBM_STA_RATES_LEN(params); i++) {
+			int rate = (ATBM_STA_RATES(params)[i] & 0x7f) * 5;
 			for (j = 0; j < sband->n_bitrates; j++) {
 				if (sband->bitrates[j].bitrate == rate)
 					rates |= BIT(j);
@@ -1295,9 +1307,9 @@ static void sta_apply_parameters(struct ieee80211_local *local,
 		sta->sta.supp_rates[chan_state->oper_channel->band] = rates;
 	}
 
-	if (params->ht_capa){
+	if (ATBM_STA_HT_CAPA(params)){
 		ieee80211_ht_cap_ie_to_sta_ht_cap(sband,
-						  params->ht_capa,
+						  ATBM_STA_HT_CAPA(params),
 						  &sta->sta.ht_cap);
 		ieee80211_ht_cap_to_sta_channel_type(sta);
 	}
@@ -4100,22 +4112,105 @@ static int ieee80211_start_radar_detection(struct wiphy *wiphy,
 #endif
 #endif 
 #endif
+
+/* --- порт на 6.18: переходники к изменившимся cfg80211_ops ------------------
+ * 6.0 (MLO): ключевые операции получили параметр link_id;
+ *            change_beacon получает cfg80211_ap_update вместо cfg80211_beacon_data;
+ *            set_monitor_channel получает net_device.
+ * Для связи без MLO link_id не значим — отбрасываем.
+ */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+static int atbm_op_add_key(struct wiphy *wiphy, struct net_device *dev,
+		int link_id, u8 key_idx, bool pairwise, const u8 *mac_addr,
+		struct key_params *params)
+{
+	return ieee80211_add_key(wiphy, dev, key_idx, pairwise, mac_addr, params);
+}
+
+static int atbm_op_del_key(struct wiphy *wiphy, struct net_device *dev,
+		int link_id, u8 key_idx, bool pairwise, const u8 *mac_addr)
+{
+	return ieee80211_del_key(wiphy, dev, key_idx, pairwise, mac_addr);
+}
+
+static int atbm_op_get_key(struct wiphy *wiphy, struct net_device *dev,
+		int link_id, u8 key_idx, bool pairwise, const u8 *mac_addr,
+		void *cookie, void (*callback)(void *cookie, struct key_params *params))
+{
+	return ieee80211_get_key(wiphy, dev, key_idx, pairwise, mac_addr,
+				 cookie, callback);
+}
+
+static int atbm_op_set_default_key(struct wiphy *wiphy, struct net_device *dev,
+		int link_id, u8 key_idx, bool uni, bool multi)
+{
+	return ieee80211_config_default_key(wiphy, dev, key_idx, uni, multi);
+}
+
+static int atbm_op_set_default_mgmt_key(struct wiphy *wiphy,
+		struct net_device *dev, int link_id, u8 key_idx)
+{
+	return ieee80211_config_default_mgmt_key(wiphy, dev, key_idx);
+}
+
+static int atbm_op_change_beacon(struct wiphy *wiphy, struct net_device *dev,
+		struct cfg80211_ap_update *info)
+{
+	return ieee80211_change_beacon(wiphy, dev, &info->beacon);
+}
+
+static int atbm_op_set_monitor_channel(struct wiphy *wiphy,
+		struct net_device *dev, struct cfg80211_chan_def *chandef)
+{
+	return ieee80211_set_monitor_channel(wiphy, chandef);
+}
+
+#define ATBM_OP_ADD_KEY			atbm_op_add_key
+#define ATBM_OP_DEL_KEY			atbm_op_del_key
+#define ATBM_OP_GET_KEY			atbm_op_get_key
+#define ATBM_OP_SET_DEFAULT_KEY		atbm_op_set_default_key
+#define ATBM_OP_SET_DEFAULT_MGMT_KEY	atbm_op_set_default_mgmt_key
+#define ATBM_OP_CHANGE_BEACON		atbm_op_change_beacon
+#define ATBM_OP_SET_MONITOR_CHANNEL	atbm_op_set_monitor_channel
+#else
+#define ATBM_OP_ADD_KEY			ieee80211_add_key
+#define ATBM_OP_DEL_KEY			ieee80211_del_key
+#define ATBM_OP_GET_KEY			ieee80211_get_key
+#define ATBM_OP_SET_DEFAULT_KEY		ieee80211_config_default_key
+#define ATBM_OP_SET_DEFAULT_MGMT_KEY	ieee80211_config_default_mgmt_key
+#define ATBM_OP_CHANGE_BEACON		ieee80211_change_beacon
+#define ATBM_OP_SET_MONITOR_CHANNEL	ieee80211_set_monitor_channel
+#endif
+/* --- конец переходников ---------------------------------------------------- */
+
+
+/* порт на 6.18: set_wiphy_params получил номер радиомодуля; у нас одно радио */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 18, 0))
+static int atbm_op_set_wiphy_params(struct wiphy *wiphy, int radio_idx, u32 changed)
+{
+	return ieee80211_set_wiphy_params(wiphy, changed);
+}
+#define ATBM_OP_SET_WIPHY_PARAMS	atbm_op_set_wiphy_params
+#else
+#define ATBM_OP_SET_WIPHY_PARAMS	ieee80211_set_wiphy_params
+#endif
+
 struct cfg80211_ops mac80211_config_ops = {
 	.add_virtual_intf = ieee80211_add_iface,
 	.del_virtual_intf = ieee80211_del_iface,
 	.change_virtual_intf = ieee80211_change_iface,
-	.add_key = ieee80211_add_key,
-	.del_key = ieee80211_del_key,
-	.get_key = ieee80211_get_key,
-	.set_default_key = ieee80211_config_default_key,
-	.set_default_mgmt_key = ieee80211_config_default_mgmt_key,
+	.add_key = ATBM_OP_ADD_KEY,
+	.del_key = ATBM_OP_DEL_KEY,
+	.get_key = ATBM_OP_GET_KEY,
+	.set_default_key = ATBM_OP_SET_DEFAULT_KEY,
+	.set_default_mgmt_key = ATBM_OP_SET_DEFAULT_MGMT_KEY,
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 4, 0))
 	.add_beacon = ieee80211_add_beacon,
 	.set_beacon = ieee80211_set_beacon,
 	.del_beacon = ieee80211_del_beacon,
 #else
 	.start_ap = ieee80211_start_ap,
-	.change_beacon = ieee80211_change_beacon,
+	.change_beacon = ATBM_OP_CHANGE_BEACON,
 	.stop_ap = ieee80211_del_beacon,
 #endif
 	.add_station = ieee80211_add_station,
@@ -4139,7 +4234,7 @@ struct cfg80211_ops mac80211_config_ops = {
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 6, 0))
 	.set_channel = ieee80211_set_channel,
 #else
-	.set_monitor_channel = ieee80211_set_monitor_channel,
+	.set_monitor_channel = ATBM_OP_SET_MONITOR_CHANNEL,
 #endif
 	.suspend = ieee80211_suspend,
 	.resume = ieee80211_resume,
@@ -4156,7 +4251,7 @@ struct cfg80211_ops mac80211_config_ops = {
 	.join_ibss = ieee80211_join_ibss,
 	.leave_ibss = ieee80211_leave_ibss,
 #endif
-	.set_wiphy_params = ieee80211_set_wiphy_params,
+	.set_wiphy_params = ATBM_OP_SET_WIPHY_PARAMS,
 #ifdef CONFIG_ATBM_SUPPORT_WDS
 	.set_wds_peer = ieee80211_set_wds_peer,
 #endif

@@ -212,14 +212,21 @@ void atbm_xmit_linearize(struct atbm_common	*hw_priv,
 		for (sg = 0; sg < skb_shinfo(skb)->nr_frags; sg++){
 			
 			skb_frag_t *frag = &skb_shinfo(skb)->frags[sg];
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 4, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+			/* порт на 6.18: только через функции доступа */
+			memcpy(xmit,page_address(skb_frag_page(frag)) + skb_frag_off(frag),
+			       skb_frag_size(frag));
+#elif (LINUX_VERSION_CODE > KERNEL_VERSION(5, 4, 0))
 			memcpy(xmit,page_address(frag->bv_page) + frag->bv_offset,frag->bv_len);
 #elif (LINUX_VERSION_CODE < KERNEL_VERSION(3, 2, 0))		
 			memcpy(xmit,page_address(frag->page) + frag->page_offset,frag->size);
 #else
 			memcpy(xmit,page_address(frag->page.p) + frag->page_offset,frag->size);
 #endif
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 4, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+			xmit += skb_frag_size(frag);
+			sg_len += skb_frag_size(frag);
+#elif (LINUX_VERSION_CODE > KERNEL_VERSION(5, 4, 0))
 			xmit += frag->bv_len;
 			sg_len += frag->bv_len;
 #else

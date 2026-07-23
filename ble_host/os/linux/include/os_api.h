@@ -12,7 +12,7 @@
 
 #define __INLINE        inline
 #define iot_printf      printk
-#define atbm_random()   prandom_u32()
+#define atbm_random()   get_random_u32()
 
 #define TargetUsb_lmac_start()
 

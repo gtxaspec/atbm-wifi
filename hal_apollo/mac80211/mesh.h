@@ -13,7 +13,7 @@
 
 #include <linux/types.h>
 #include <linux/jhash.h>
-#include <asm/unaligned.h>
+#include <linux/unaligned.h>
 #include "ieee80211_i.h"
 
 

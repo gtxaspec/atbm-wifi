@@ -172,6 +172,8 @@ static const struct sdio_device_id atbm_sdio_ids[] = {
 	{ SDIO_DEVICE(WIFI_SDIO_VID, WIFI_SDIO_PID) },
 	{ /* end: all zeroes */			},
 };
+/* порт на 6.18: без этого нет alias -> нет автозагрузки по обнаружению карты */
+MODULE_DEVICE_TABLE(sdio, atbm_sdio_ids);
 
 static int  atbm_sdio_init(void);
 static void  atbm_sdio_exit(void);

@@ -7,7 +7,7 @@
 #include <linux/types.h>
 #include <linux/compiler.h>
 #include <linux/gfp.h>
-#include <asm/unaligned.h>
+#include <linux/unaligned.h>
 #include <net/atbm_mac80211.h>
 #include <linux/version.h>
 #include <linux/module.h>
