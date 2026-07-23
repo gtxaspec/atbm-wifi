@@ -4032,6 +4032,10 @@ static void ieee80211_mgd_assoc_rx_resp(struct ieee80211_work* wk,struct atbm_ie
 	atbm_wdev_lock(wdev);
 	cfg80211_rx_assoc_resp(wk->sdata->dev,wk->assoc.bss,(u8*)mgmt,len);
 	atbm_wdev_unlock(wdev);
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(6,0,0))
+	atbm_wdev_lock(wdev);
+	atbm_compat_rx_assoc_resp(wk->sdata->dev,wk->assoc.bss,(u8*)mgmt,len);
+	atbm_wdev_unlock(wdev);
 #elif (LINUX_VERSION_CODE > KERNEL_VERSION(5,0,0))
 	atbm_wdev_lock(wdev);
 	cfg80211_rx_assoc_resp(wk->sdata->dev,wk->assoc.bss,(u8*)mgmt,len, -1, NULL, 0);
@@ -4051,7 +4055,11 @@ static void ieee80211_mgd_assoc_timeout(struct ieee80211_work* wk)
 #else
 	struct wireless_dev *wdev = wk->sdata->dev->ieee80211_ptr;
 	atbm_wdev_lock(wdev);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,0,0))
+	atbm_compat_assoc_timeout(wk->sdata->dev,wk->assoc.bss);
+#else
 	cfg80211_assoc_timeout(wk->sdata->dev,wk->assoc.bss/*wk->filter_bssid*/);
+#endif
 	atbm_wdev_unlock(wdev);
 #endif
 }
@@ -4849,20 +4857,30 @@ int ieee80211_mgd_disassoc(struct ieee80211_sub_if_data *sdata,
 	 * to cfg80211 while that's in a locked section already
 	 * trying to tell us that the user wants to disconnect.
 	 */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+	/* порт на 6.18: в cfg80211_disassoc_request поля bss больше нет, есть ap_addr */
+	if (!ifmgd->associated ||
+	    !ether_addr_equal(ifmgd->associated->bssid, req->ap_addr)) {
+		mutex_unlock(&ifmgd->mtx);
+		return -ENOLINK;
+	}
+	memcpy(bssid, req->ap_addr, ETH_ALEN);
+#else
 	if (ifmgd->associated != req->bss) {
 		mutex_unlock(&ifmgd->mtx);
 		return -ENOLINK;
 	}
+	memcpy(bssid, req->bss->bssid, ETH_ALEN);
+#endif
 
 	atbm_printk_mgmt( "%s: disassociating from %pM by local choice (reason=%d)\n",
-	       sdata->name, req->bss->bssid, req->reason_code);
-
-	memcpy(bssid, req->bss->bssid, ETH_ALEN);
+	       sdata->name, bssid, req->reason_code);
 	ieee80211_set_disassoc(sdata, false, true);
 
 	mutex_unlock(&ifmgd->mtx);
 
-	ieee80211_send_deauth_disassoc(sdata, req->bss->bssid,
+	/* порт на 6.18: bssid уже вычислен выше (req->bss не существует) */
+	ieee80211_send_deauth_disassoc(sdata, bssid,
 			IEEE80211_STYPE_DISASSOC, req->reason_code,
 			cookie, !req->local_state_change);
 	sta_info_flush(sdata->local, sdata);
