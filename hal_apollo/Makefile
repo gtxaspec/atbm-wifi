@@ -181,6 +181,16 @@ endif
         -include $(shell pwd)/../include/linux/compat-2.6.h \
         -DCOMPAT_STATIC
 
+# wext_cfg.c puts its whole body, including the tx-power helpers that
+# dev_ioctl.c and internal_cmd.c call unconditionally, behind
+# #ifdef CONFIG_WIRELESS_EXT. That kernel symbol is a bare bool with no prompt
+# and nothing selects it (CFG80211_WEXT selects WEXT_CORE instead), so it can
+# never come from the kernel config and the module ends up with undefined
+# atbm_{oceanus,cronus}_set_tx_power and
+# atbm_set_txpwr_by_atbm_txpwer_dcxo_cfg_file. The wext API itself is present
+# whenever WEXT_CORE is, so define the macro the driver expects.
+ccflags-y += -DCONFIG_WIRELESS_EXT
+
 ATBM_BUILD_TIME = $(shell date "+%Y-%m-%d_%H:%M:%S")
 ccflags-y += -DCONFIG_ATBM_BUILD_TIME=\"$(ATBM_BUILD_TIME)\"
 ##指定配置文件路径，当配置文件存在时使用配置文件中的dcxo值不使用efuse中的dcxo，配置文件中的delta_gain为修正值，如果文件不存在则直接使用efuse中的数据
