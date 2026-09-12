@@ -1,3 +1,5 @@
+# thingino: include staged .config so CPTCFG_CFG80211 is set in the kbuild M= path
+-include $(M)/.config
 ifneq ($(ATBM_BUILD_IN_KERNEL),y)
 -include $(WIFI_PROJ_DIR)/.config
 endif

@@ -423,6 +423,7 @@ ifeq ($(ATBM_BUILD_IN_KERNEL),)
 $(warning "============>1")
 export ATBM_BUILD_IN_KERNEL=y
 obj-m += hal_apollo/
+obj-m += wireless/
 
 
 else
