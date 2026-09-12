@@ -194,17 +194,17 @@ ccflags-y += -DCONFIG_WIRELESS_EXT
 ATBM_BUILD_TIME = $(shell date "+%Y-%m-%d_%H:%M:%S")
 ccflags-y += -DCONFIG_ATBM_BUILD_TIME=\"$(ATBM_BUILD_TIME)\"
 ##指定配置文件路径，当配置文件存在时使用配置文件中的dcxo值不使用efuse中的dcxo，配置文件中的delta_gain为修正值，如果文件不存在则直接使用efuse中的数据
-ATBM_CONFIG_FILE="/tmp/atbm_txpwer_dcxo_cfg.txt"
+ATBM_CONFIG_FILE="/usr/share/wifi/atbm_txpwer_dcxo_cfg.txt"
 ccflags-y += -DCONFIG_TXPOWER_DCXO_VALUE=\"$(ATBM_CONFIG_FILE)\"
 # use the deltagain value in file :"$(ATBM_CONFIG_FILE)",when file exist
-ATBM_RATE_POWER_CONFIG_FILE="/tmp/set_rate_power.txt"
+ATBM_RATE_POWER_CONFIG_FILE="/usr/share/wifi/set_rate_power.txt"
 ccflags-y += -DCONFIG_RATE_TXPOWER=\"$(ATBM_RATE_POWER_CONFIG_FILE)\"
 
-ATBM_RATE_POWER_CONFIG_FILE_5G="/tmp/set_rate_power_5g.txt"
+ATBM_RATE_POWER_CONFIG_FILE_5G="/usr/share/wifi/set_rate_power_5g.txt"
 ccflags-y += -DCONFIG_RATE_TXPOWER_5G=\"$(ATBM_RATE_POWER_CONFIG_FILE_5G)\"
 
 # use the temp table and dcxo table in file :"$(ATBM_TEMP_DCXO_TABLE_CONFIG_FILE)",when file exist
-ATBM_TEMP_DCXO_TABLE_CONFIG_FILE="/tmp/temp_dcxo_table.txt"
+ATBM_TEMP_DCXO_TABLE_CONFIG_FILE="/usr/share/wifi/temp_dcxo_table.txt"
 ccflags-y += -DCONFIG_TEMP_DCXO_TABLE=\"$(ATBM_TEMP_DCXO_TABLE_CONFIG_FILE)\"
 
 ccflags-y += -DCONFIG_COUNTRY_VAL=\"$(COUNTRY_VAL)\"
